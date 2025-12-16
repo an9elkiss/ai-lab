@@ -1,0 +1,36 @@
+server:
+  port: 9000
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: ai-lab
+  
+  # JSON序列化配置
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: non_null
+
+# SpringDoc OpenAPI 配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  packages-to-scan: com.weis.demo.controller
+  paths-to-match: /**
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.weis: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+
