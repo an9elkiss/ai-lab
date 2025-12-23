@@ -9,6 +9,7 @@
 - **Maven**: 单模块项目
 - **API文档**: SpringDoc OpenAPI 3 (Swagger)
 - **工具类**: Hutool 5.8.34
+- **AI框架**: LangChain4j 1.9.1
 
 ## 项目结构
 
@@ -62,11 +63,71 @@ java -jar target/ai-lab-1.0.0-SNAPSHOT.jar
 
 ### 访问应用
 
-- **应用地址**: http://localhost:8080
-- **Swagger UI**: http://localhost:8080/swagger-ui.html
-- **API文档**: http://localhost:8080/v3/api-docs
+- **应用地址**: http://localhost:9000
+- **Swagger UI**: http://localhost:9000/swagger-ui.html
+- **API文档**: http://localhost:9000/v3/api-docs
 
 ## API接口
+
+### AI功能接口
+
+#### 1. 简单聊天
+```
+POST /api/ai/chat
+Content-Type: application/json
+
+{
+  "message": "你好，请介绍一下自己"
+}
+```
+
+#### 2. 上下文聊天
+```
+POST /api/ai/chat/context
+Content-Type: application/json
+
+{
+  "sessionId": "user123",
+  "message": "我想了解Spring Boot"
+}
+```
+
+#### 3. 文本嵌入
+```
+POST /api/ai/embed
+Content-Type: application/json
+
+{
+  "text": "这是一段需要向量化的文本"
+}
+```
+
+#### 4. 文本相似度
+```
+POST /api/ai/similarity
+Content-Type: application/json
+
+{
+  "text1": "苹果是一种水果",
+  "text2": "苹果很好吃"
+}
+```
+
+#### 5. 文档问答
+```
+POST /api/ai/document/qa
+Content-Type: application/json
+
+{
+  "document": "Spring Boot是一个Java框架...",
+  "question": "什么是Spring Boot？"
+}
+```
+
+#### 6. 清除会话上下文
+```
+DELETE /api/ai/context/{sessionId}
+```
 
 ### HelloWorld接口
 

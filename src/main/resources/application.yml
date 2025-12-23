@@ -31,6 +31,37 @@ logging:
   level:
     root: INFO
     com.weis: DEBUG
+    dev.langchain4j: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+
+# DeepSeek Configuration (using OpenAI compatible API)
+langchain4j:
+  open-ai:
+    chat-model:
+      api-key: ${DEEPSEEK_API_KEY}
+      base-url: https://api.deepseek.com
+      model-name: deepseek-chat
+      temperature: 0.0
+      timeout: PT60S
+      log-requests: false
+      log-responses: false
+      # Explicitly specify HTTP client type to avoid conflicts
+      http-client-builder: dev.langchain4j.http.client.spring.restclient.SpringRestClientBuilder
+
+  # 阿里千问大模型配置
+  dashscope:
+    chat-model:
+      api-key: ${QWEN_API_KEY}
+      model-name: qwen-vl-max
+      temperature: 0.0
+
+
+
+
+
+
+
+
+
 
