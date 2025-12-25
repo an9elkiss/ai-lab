@@ -7,9 +7,8 @@ import com.weis.demo.agent.VisualGuideAgent;
 import com.weis.demo.agent.listener.ChatModelListenerImpl;
 import com.weis.demo.agent.typedkey.Image;
 import com.weis.demo.tool.ItemTools;
-import com.weis.demo.tool.MemberTools;
+import com.weis.demo.mcp.MemberMCP;
 import dev.langchain4j.agentic.AgenticServices;
-import dev.langchain4j.agentic.UntypedAgent;
 import dev.langchain4j.community.model.dashscope.QwenChatModel;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentSplitter;
@@ -17,7 +16,6 @@ import dev.langchain4j.data.document.parser.TextDocumentParser;
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
-import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.memory.chat.TokenWindowChatMemory;
 import dev.langchain4j.model.TokenCountEstimator;
 import dev.langchain4j.model.chat.ChatModel;
@@ -145,13 +143,12 @@ public class GoldMedalGuideAgentConfig {
     public GoldMedalGuideAgent goldMedalGuideAgent(@Qualifier("openAiChatModel") ChatModel chatModel,
                                                    ChatMemoryProvider chatMemoryProvider,
                                                    ContentRetriever contentRetriever,
-                                                   ItemTools itemTools,
-                                                   MemberTools memberTools) {
+                                                   ItemTools itemTools) {
         return AgenticServices.agentBuilder(GoldMedalGuideAgent.class)
                 .chatModel(chatModel)
                 .chatMemoryProvider(chatMemoryProvider)
 //                .contentRetriever(contentRetriever)
-                .tools(itemTools, memberTools)
+                .tools(itemTools)
                 .build();
     }
 

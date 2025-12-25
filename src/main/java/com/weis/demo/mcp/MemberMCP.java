@@ -1,8 +1,8 @@
-package com.weis.demo.tool;
+package com.weis.demo.mcp;
 
-import dev.langchain4j.agent.tool.Tool;
-import dev.langchain4j.agent.tool.ToolMemoryId;
 import lombok.extern.slf4j.Slf4j;
+import org.springaicommunity.mcp.annotation.McpTool;
+import org.springaicommunity.mcp.annotation.McpToolParam;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -11,11 +11,11 @@ import java.util.Map;
 
 @Slf4j
 @Component
-public class MemberTools {
+public class MemberMCP {
 
-    @Tool(name = "member-coupon-query", value = "查询用户的可用优惠券列表，包括优惠券类型、面额、使用条件和有效期等信息")
-    public List<Map<String, Object>> queryMemberCoupons(@ToolMemoryId String memoryId) {
-        log.info("查询用户优惠券，会员ID: {}", memoryId);
+    @McpTool(name = "member-coupon-query", description = "查询用户的可用优惠券列表，包括优惠券类型、面额、使用条件和有效期等信息")
+    public List<Map<String, Object>> queryMemberCoupons(@McpToolParam(description = "会员ID") String memberId) {
+        log.info("查询用户优惠券，会员ID: {}", memberId);
         
         // 模拟用户优惠券数据
         return List.of(
@@ -31,7 +31,7 @@ public class MemberTools {
                 "description", "满299元减50元，仅限新用户使用"
             ),
             Map.of(
-                "couponId", "CPN002", 
+                "couponId", "CPN002",
                 "couponName", "品类专享券",
                 "couponType", "折扣券",
                 "discountRate", "0.85",
@@ -43,7 +43,7 @@ public class MemberTools {
             ),
             Map.of(
                 "couponId", "CPN003",
-                "couponName", "生日专享券", 
+                "couponName", "生日专享券",
                 "couponType", "满减券",
                 "discountAmount", new BigDecimal("100.00"),
                 "minOrderAmount", new BigDecimal("599.00"),

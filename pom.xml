@@ -38,6 +38,9 @@
         
         <!-- LangChain4j 版本 -->
         <langchain4j.version>1.9.1-beta17</langchain4j.version>
+        
+        <!-- Spring AI 版本 -->
+        <spring-ai.version>1.1.2</spring-ai.version>
     </properties>
 
     <dependencies>
@@ -122,6 +125,26 @@
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-community-dashscope</artifactId>
             <version>1.9.1-beta17</version>
+        </dependency>
+
+        <!-- Spring AI MCP Server -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-mcp-server-webmvc</artifactId>
+            <version>${spring-ai.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.github.victools</groupId>
+                    <artifactId>jsonschema-generator</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- 兼容的 JsonSchema Generator 版本 -->
+        <dependency>
+            <groupId>com.github.victools</groupId>
+            <artifactId>jsonschema-generator</artifactId>
+            <version>4.38.0</version>
         </dependency>
     </dependencies>
 
