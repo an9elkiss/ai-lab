@@ -12,10 +12,11 @@ spring:
         name: weis-mcp-server
         version: 1.0.0
         type: SYNC
-        protocol: STATELESS
+        protocol: STREAMABLE
         capabilities:
           tool: true
-        sse-endpoint: /sse
+        streamable-http:
+          mcp-endpoint: /mcp
 
   # JSON序列化配置
   jackson:

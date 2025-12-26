@@ -15,6 +15,11 @@ import dev.langchain4j.data.document.DocumentSplitter;
 import dev.langchain4j.data.document.parser.TextDocumentParser;
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.mcp.McpToolProvider;
+import dev.langchain4j.mcp.client.DefaultMcpClient;
+import dev.langchain4j.mcp.client.McpClient;
+import dev.langchain4j.mcp.client.transport.McpTransport;
+import dev.langchain4j.mcp.client.transport.http.StreamableHttpMcpTransport;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.TokenWindowChatMemory;
 import dev.langchain4j.model.TokenCountEstimator;
@@ -25,6 +30,7 @@ import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2Embedding
 import dev.langchain4j.model.openai.OpenAiTokenCountEstimator;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
+import dev.langchain4j.service.tool.ToolProvider;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
@@ -36,6 +42,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 
 import static dev.langchain4j.data.document.loader.FileSystemDocumentLoader.loadDocument;
@@ -130,6 +137,25 @@ public class GoldMedalGuideAgentConfig {
                 .build();
     }
 
+//    @Bean
+    public ToolProvider toolProvider(){
+        McpTransport transport = new StreamableHttpMcpTransport.Builder()
+                .url("http://localhost:9000/sse")
+                .timeout(Duration.ofSeconds(60))
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+
+        McpClient mcpClient = new DefaultMcpClient.Builder()
+                .transport(transport)
+                .build();
+
+        ToolProvider toolProvider = McpToolProvider.builder()
+                .mcpClients(List.of(mcpClient))
+                .build();
+        return toolProvider;
+    }
+
     @Bean
     public VisualAnalyzerAgent visualAnalyzerAgent(QwenChatModel chatModel, ChatMemoryProvider chatMemoryProvider) {
         return AgenticServices.agentBuilder(VisualAnalyzerAgent.class)
@@ -143,12 +169,15 @@ public class GoldMedalGuideAgentConfig {
     public GoldMedalGuideAgent goldMedalGuideAgent(@Qualifier("openAiChatModel") ChatModel chatModel,
                                                    ChatMemoryProvider chatMemoryProvider,
                                                    ContentRetriever contentRetriever,
-                                                   ItemTools itemTools) {
+                                                   ItemTools itemTools
+//                                                   ToolProvider toolProvider
+    ) {
         return AgenticServices.agentBuilder(GoldMedalGuideAgent.class)
                 .chatModel(chatModel)
                 .chatMemoryProvider(chatMemoryProvider)
+//                .toolProvider(toolProvider)
 //                .contentRetriever(contentRetriever)
-                .tools(itemTools)
+//                .tools(itemTools)
                 .build();
     }
 
