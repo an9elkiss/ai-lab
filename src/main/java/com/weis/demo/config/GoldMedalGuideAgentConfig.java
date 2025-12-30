@@ -5,9 +5,9 @@ import com.weis.demo.agent.GoldMedalGuideAgent;
 import com.weis.demo.agent.VisualAnalyzerAgent;
 import com.weis.demo.agent.VisualGuideAgent;
 import com.weis.demo.agent.listener.ChatModelListenerImpl;
+import com.weis.demo.agent.provider.DemoSystemMessageProvider;
 import com.weis.demo.agent.typedkey.Image;
 import com.weis.demo.tool.ItemTools;
-import com.weis.demo.mcp.MemberMCP;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.community.model.dashscope.QwenChatModel;
 import dev.langchain4j.data.document.Document;
@@ -15,6 +15,8 @@ import dev.langchain4j.data.document.DocumentSplitter;
 import dev.langchain4j.data.document.parser.TextDocumentParser;
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.http.client.HttpClientBuilderFactory;
+import dev.langchain4j.http.client.spring.restclient.SpringRestClientBuilderFactory;
 import dev.langchain4j.mcp.McpToolProvider;
 import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
@@ -27,6 +29,7 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.listener.ChatModelListener;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel;
+import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiTokenCountEstimator;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
@@ -34,7 +37,6 @@ import dev.langchain4j.service.tool.ToolProvider;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -68,6 +70,31 @@ public class GoldMedalGuideAgentConfig {
                 .modelName(modelName)
                 .temperature(temperature)
                 .listeners(List.of(chatModelListener))
+                .build();
+    }
+
+    @Bean
+    public HttpClientBuilderFactory httpClientBuilderFactory(){
+        return new SpringRestClientBuilderFactory();
+    }
+
+    @Bean
+    public ChatModel chatModel(
+            @Value("${langchain4j.open-ai.chat-model.api-key}") String apiKey,
+            @Value("${langchain4j.open-ai.chat-model.model-name}") String modelName,
+            @Value("${langchain4j.open-ai.chat-model.base-url}") String baseUrl,
+            @Value("${langchain4j.open-ai.chat-model.temperature}") Double temperature,
+            HttpClientBuilderFactory httpClientBuilderFactory,
+            ChatModelListener chatModelListener) {
+
+
+        return OpenAiChatModel.builder()
+                .apiKey(apiKey)
+                .modelName(modelName)
+                .baseUrl(baseUrl)
+                .temperature(temperature)
+                .listeners(List.of(chatModelListener))
+                .httpClientBuilder(httpClientBuilderFactory.create())
                 .build();
     }
 
@@ -166,8 +193,9 @@ public class GoldMedalGuideAgentConfig {
     }
 
     @Bean
-    public GoldMedalGuideAgent goldMedalGuideAgent(@Qualifier("openAiChatModel") ChatModel chatModel,
+    public GoldMedalGuideAgent goldMedalGuideAgent(ChatModel chatModel,
                                                    ChatMemoryProvider chatMemoryProvider,
+                                                   DemoSystemMessageProvider systemMessageProvider,
                                                    ContentRetriever contentRetriever,
                                                    ItemTools itemTools
 //                                                   ToolProvider toolProvider
@@ -175,6 +203,7 @@ public class GoldMedalGuideAgentConfig {
         return AgenticServices.agentBuilder(GoldMedalGuideAgent.class)
                 .chatModel(chatModel)
                 .chatMemoryProvider(chatMemoryProvider)
+                .systemMessageProvider(systemMessageProvider)
 //                .toolProvider(toolProvider)
 //                .contentRetriever(contentRetriever)
 //                .tools(itemTools)
