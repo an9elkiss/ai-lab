@@ -37,6 +37,7 @@ import dev.langchain4j.service.tool.ToolProvider;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
+import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -107,6 +108,7 @@ public class GoldMedalGuideAgentConfig {
     @Bean
     ChatMemoryProvider chatMemoryProvider(TokenCountEstimator tokenizer) {
         return memoryId -> TokenWindowChatMemory.builder()
+                .chatMemoryStore(new InMemoryChatMemoryStore())
                 .id(memoryId)
                 .maxTokens(5000, tokenizer)
                 .build();
