@@ -53,23 +53,25 @@ public class RAGConfig {
         // 1. 创建 Elasticsearch 8 嵌入存储
         EmbeddingStore<TextSegment> embeddingStore = ElasticsearchEmbeddingStore.builder()
                 .restClient(restClient)
+                .indexName("ski-equipment-knowledge")
                 .build();
 
-        // 2. 加载示例文档
-        Resource resource = resourceLoader.getResource("classpath:ski-equipment-knowledge.txt");
-        Document document = loadDocument(resource.getFile().toPath(), new TextDocumentParser());
-
-        // 3. 分割文档并存储到 Elasticsearch
-        // 将文档分割成每段 300 个 token
-        // 将段落转换为嵌入向量
-        // 将嵌入向量存储到 Elasticsearch
-        DocumentSplitter documentSplitter = DocumentSplitters.recursive(300, 0, tokenizer);
-        EmbeddingStoreIngestor ingestor = EmbeddingStoreIngestor.builder()
-                .documentSplitter(documentSplitter)
-                .embeddingModel(embeddingModel)
-                .embeddingStore(embeddingStore)
-                .build();
-        ingestor.ingest(document);
+        // 注意：已存入ES，不要重复执行
+//        // 2. 加载示例文档
+//        Resource resource = resourceLoader.getResource("classpath:ski-equipment-knowledge.txt");
+//        Document document = loadDocument(resource.getFile().toPath(), new TextDocumentParser());
+//
+//        // 3. 分割文档并存储到 Elasticsearch
+//        // 将文档分割成每段 300 个 token
+//        // 将段落转换为嵌入向量
+//        // 将嵌入向量存储到 Elasticsearch
+//        DocumentSplitter documentSplitter = DocumentSplitters.recursive(300, 0, tokenizer);
+//        EmbeddingStoreIngestor ingestor = EmbeddingStoreIngestor.builder()
+//                .documentSplitter(documentSplitter)
+//                .embeddingModel(embeddingModel)
+//                .embeddingStore(embeddingStore)
+//                .build();
+//        ingestor.ingest(document);
 
         return embeddingStore;
     }
