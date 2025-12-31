@@ -7,7 +7,7 @@ import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.TokenCountEstimator;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel;
+import dev.langchain4j.community.model.dashscope.QwenEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiTokenCountEstimator;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
@@ -34,8 +34,12 @@ public class RAGConfig {
 
     @Bean
     EmbeddingModel embeddingModel() {
-        // Not the best embedding model, but good enough for this demo
-        return new AllMiniLmL6V2EmbeddingModel();
+        // 使用阿里千问的 Embedding 模型
+        return QwenEmbeddingModel.builder()
+                .apiKey(System.getenv("QWEN_API_KEY"))
+                .modelName("text-embedding-v3")
+                .dimension(1024)
+                .build();
     }
 
     @Bean
