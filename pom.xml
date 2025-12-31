@@ -127,6 +127,13 @@
             <version>1.9.1-beta17</version>
         </dependency>
 
+        <!-- Elasticsearch 8 Embedding Store -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-elasticsearch</artifactId>
+            <version>1.9.1-beta17</version>
+        </dependency>
+
         <!-- Spring AI MCP Server -->
         <dependency>
             <groupId>org.springframework.ai</groupId>

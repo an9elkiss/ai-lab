@@ -13,7 +13,8 @@ import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
-import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
+import dev.langchain4j.store.embedding.elasticsearch.ElasticsearchEmbeddingStore;
+import org.elasticsearch.client.RestClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
@@ -25,6 +26,7 @@ import static dev.langchain4j.data.document.loader.FileSystemDocumentLoader.load
 
 @Configuration
 public class RAGConfig {
+
 
     @Bean
     TokenCountEstimator tokenCountEstimator() {
@@ -43,22 +45,24 @@ public class RAGConfig {
     }
 
     @Bean
-    EmbeddingStore<TextSegment> embeddingStore(EmbeddingModel embeddingModel, ResourceLoader resourceLoader, TokenCountEstimator tokenizer) throws IOException {
+    EmbeddingStore<TextSegment> embeddingStore(EmbeddingModel embeddingModel,
+                                               ResourceLoader resourceLoader,
+                                               TokenCountEstimator tokenizer,
+                                               RestClient restClient) throws IOException {
 
-        // Normally, you would already have your embedding store filled with your data.
-        // However, for the purpose of this demonstration, we will:
+        // 1. 创建 Elasticsearch 8 嵌入存储
+        EmbeddingStore<TextSegment> embeddingStore = ElasticsearchEmbeddingStore.builder()
+                .restClient(restClient)
+                .build();
 
-        // 1. Create an in-memory embedding store
-        EmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
-
-        // 2. Load an example document ("Miles of Smiles" terms of use)
+        // 2. 加载示例文档
         Resource resource = resourceLoader.getResource("classpath:ski-equipment-knowledge.txt");
         Document document = loadDocument(resource.getFile().toPath(), new TextDocumentParser());
 
-        // 3. Split the document into segments 100 tokens each
-        // 4. Convert segments into embeddings
-        // 5. Store embeddings into embedding store
-        // All this can be done manually, but we will use EmbeddingStoreIngestor to automate this:
+        // 3. 分割文档并存储到 Elasticsearch
+        // 将文档分割成每段 300 个 token
+        // 将段落转换为嵌入向量
+        // 将嵌入向量存储到 Elasticsearch
         DocumentSplitter documentSplitter = DocumentSplitters.recursive(300, 0, tokenizer);
         EmbeddingStoreIngestor ingestor = EmbeddingStoreIngestor.builder()
                 .documentSplitter(documentSplitter)
