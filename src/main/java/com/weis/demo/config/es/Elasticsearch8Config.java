@@ -10,18 +10,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class Elasticsearch8Config {
 
-    @Value("${cluster.name8}")
+    @Value("${es8.cluster-name}")
     private String clusterName8;
 
-    @Value("${node.address8}")
+    @Value("${es8.node-address}")
     private String nodeAddress8;
 
-    @Value("${es.username8}")
+    @Value("${es8.username}")
     private String userName8;
 
-    @Value("${es.password8}")
+    @Value("${es8.password}")
     private String password8;
 
-    @Value("${es.protocol8:http}")
+    @Value("${es8.protocol}")
     private String protocol8;
 }
