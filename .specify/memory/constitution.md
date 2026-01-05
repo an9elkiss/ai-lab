@@ -1,50 +1,43 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+SYNC IMPACT REPORT
+Version: 0.0.0 -> 1.0.0
+- Defined Principles: Core Architecture, RAG Architecture, Coding & API Standards.
+- Replaced placeholders with concrete values based on user input.
+- Validated alignment with project structure (Java, Spring Boot).
+-->
+# AI Lab Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Core Architecture
+The project is built on **Java 21** and **Spring Boot 3.5+**. **LangChain4j** is adopted as the core framework for AI integration. The **Model Context Protocol (MCP)** services MUST be implemented using **Spring AI**.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. RAG Architecture
+The Retrieval-Augmented Generation (RAG) system MUST unify on **Elasticsearch** as the vector database. It MUST be configured with high-dimensional **Embedding models** (specifically **Qwen/Ali Qianwen**).
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Coding & API Standards
+- **Lombok** MUST be used to simplify POJO development.
+- APIs MUST follow **RESTful** specifications and integrate **Swagger** for documentation.
+- **Hutool** MUST be the preferred library for utility classes to maintain code conciseness.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+## Technology Stack
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+- **Language**: Java 21
+- **Framework**: Spring Boot 3.5+
+- **AI Integration**: LangChain4j, Spring AI
+- **Data Store**: Elasticsearch
+- **Tools**: Lombok, Hutool, Swagger
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Development Workflow
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
-
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
-
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- **Branching**: Use feature branches (e.g., `feature/xyz`) merged via Pull Request.
+- **Documentation**: API changes require corresponding Swagger updates.
+- **Review**: Code must be reviewed for adherence to the Core Principles (especially usage of Hutool and REST compliance).
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This Constitution serves as the primary source of truth for architectural and development decisions.
+- **Amendments**: Changes to these principles require a documented PR and team consensus.
+- **Compliance**: All code reviews must verify alignment with these principles.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-01-05 | **Last Amended**: 2026-01-05
