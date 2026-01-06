@@ -1,0 +1,658 @@
+openapi: 3.0.3
+info:
+  title: Smart Sales Guide Chat API
+  description: |
+    智能导购机器人对话 API，提供多轮对话管理、商品推荐、反馈处理等核心功能。
+  version: 1.0.0
+  contact:
+    name: AI Lab Team
+    email: support@ailab.example.com
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production
+  - url: https://api-staging.example.com/v1
+    description: Staging
+  - url: http://localhost:8080/v1
+    description: Local Development
+
+tags:
+  - name: Chat
+    description: 对话管理相关接口
+  - name: Session
+    description: 会话管理接口
+  - name: Product
+    description: 商品查询接口
+
+paths:
+  /chat/sessions:
+    post:
+      tags:
+        - Session
+      summary: 创建新会话
+      description: 为用户创建一个新的对话会话，返回会话ID用于后续对话
+      operationId: createSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+              properties:
+                userId:
+                  type: string
+                  format: uuid
+                  description: 用户唯一标识（来自电商平台）
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                context:
+                  type: object
+                  description: 可选的初始上下文（如从商品详情页进入）
+                  properties:
+                    sourceProductId:
+                      type: string
+                      description: 来源商品ID
+                    referrer:
+                      type: string
+                      enum: [homepage, product_detail, cart]
+                      description: 进入来源
+      responses:
+        '201':
+          description: 会话创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /chat/sessions/{sessionId}/messages:
+    post:
+      tags:
+        - Chat
+      summary: 发送消息
+      description: 向指定会话发送用户消息，返回 AI 助手的回复
+      operationId: sendMessage
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: 会话ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/TextMessage'
+                - $ref: '#/components/schemas/ImageMessage'
+              discriminator:
+                propertyName: type
+      responses:
+        '200':
+          description: 消息处理成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+    get:
+      tags:
+        - Chat
+      summary: 获取会话历史
+      description: 获取指定会话的历史消息记录
+      operationId: getMessageHistory
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+      responses:
+        '200':
+          description: 历史消息列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/HistoricalMessage'
+                  total:
+                    type: integer
+                  hasMore:
+                    type: boolean
+
+  /chat/sessions/{sessionId}/feedback:
+    post:
+      tags:
+        - Chat
+      summary: 提交反馈
+      description: 用户对推荐的商品或回答提供反馈
+      operationId: submitFeedback
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+      responses:
+        '200':
+          description: 反馈提交成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "反馈已记录，我会为您推荐其他款式"
+                  updatedRecommendations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProductRecommendation'
+
+  /chat/sessions/{sessionId}:
+    get:
+      tags:
+        - Session
+      summary: 获取会话详情
+      operationId: getSession
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 会话详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionDetail'
+
+    delete:
+      tags:
+        - Session
+      summary: 结束会话
+      description: 显式结束会话（正常情况下自动超时）
+      operationId: endSession
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: 会话已结束
+
+  /products/search:
+    post:
+      tags:
+        - Product
+      summary: 搜索商品（供Agent调用）
+      description: 内部工具接口，由 LangChain4j Agent 调用
+      operationId: searchProducts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductSearchRequest'
+      responses:
+        '200':
+          description: 搜索结果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+                  total:
+                    type: integer
+
+  /products/{productId}:
+    get:
+      tags:
+        - Product
+      summary: 获取商品详情
+      operationId: getProduct
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 商品详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+
+  /lookbooks/search:
+    post:
+      tags:
+        - Product
+      summary: 搜索搭配方案（供Agent调用）
+      description: 根据风格、场景检索预设的整套搭配
+      operationId: searchLookbooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LookbookSearchRequest'
+      responses:
+        '200':
+          description: 搭配方案列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lookbooks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Lookbook'
+
+components:
+  schemas:
+    SessionResponse:
+      type: object
+      required:
+        - sessionId
+        - userId
+        - status
+        - createdAt
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+          example: "7c9e6679-7425-40de-944b-e07fc1f90ae7"
+        userId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [ACTIVE, COMPLETED, ABANDONED]
+          example: "ACTIVE"
+        createdAt:
+          type: string
+          format: date-time
+
+    TextMessage:
+      type: object
+      required:
+        - type
+        - content
+      properties:
+        type:
+          type: string
+          enum: [text]
+        content:
+          type: string
+          description: 用户输入的文本
+          example: "我想买一件去参加婚礼的裙子"
+          minLength: 1
+          maxLength: 500
+
+    ImageMessage:
+      type: object
+      required:
+        - type
+        - imageUrl
+      properties:
+        type:
+          type: string
+          enum: [image]
+        imageUrl:
+          type: string
+          format: uri
+          description: 图片URL或Base64编码
+        caption:
+          type: string
+          description: 可选的图片说明文字
+
+    MessageResponse:
+      type: object
+      required:
+        - messageId
+        - role
+        - content
+        - timestamp
+      properties:
+        messageId:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [assistant]
+        content:
+          type: string
+          description: AI助手的回复文本
+          example: "好的！婚礼是正式场合，您更偏好什么颜色呢？或者有具体的风格偏好吗（如优雅、简约）？"
+        timestamp:
+          type: string
+          format: date-time
+        recommendations:
+          type: array
+          description: 如处于推荐阶段，附带商品推荐列表
+          items:
+            $ref: '#/components/schemas/ProductRecommendation'
+        clarificationNeeded:
+          type: boolean
+          description: 是否需要用户进一步澄清
+          default: false
+        suggestedActions:
+          type: array
+          description: 建议用户的下一步操作
+          items:
+            type: object
+            properties:
+              label:
+                type: string
+                example: "查看详情"
+              action:
+                type: string
+                enum: [view_product, add_to_cart, continue_chat]
+              targetId:
+                type: string
+                description: 目标商品ID或Lookbook ID
+
+    HistoricalMessage:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    FeedbackRequest:
+      type: object
+      required:
+        - productId
+        - feedbackType
+      properties:
+        productId:
+          type: string
+          description: 被反馈的商品ID
+        feedbackType:
+          type: string
+          enum: [LIKE, DISLIKE, ADDED_TO_CART]
+        dislikeReason:
+          type: string
+          description: 若为DISLIKE，用户可提供原因
+          example: "颜色不喜欢"
+        additionalComment:
+          type: string
+
+    ProductRecommendation:
+      type: object
+      required:
+        - product
+        - reason
+      properties:
+        product:
+          $ref: '#/components/schemas/Product'
+        reason:
+          type: string
+          description: 个性化推荐理由
+          example: "这款酒红色连衣裙非常适合婚礼场合，丝绒质感显贵气，且目前限时8折优惠"
+        promotionTag:
+          type: string
+          example: "限时8折"
+
+    Product:
+      type: object
+      required:
+        - id
+        - name
+        - category
+        - price
+        - imageUrl
+      properties:
+        id:
+          type: string
+          example: "prod-20260106-001"
+        name:
+          type: string
+          example: "优雅V领丝绒连衣裙"
+        category:
+          type: string
+          example: "连衣裙"
+        subCategory:
+          type: string
+          example: "长裙"
+        price:
+          type: number
+          format: float
+          example: 899.0
+        originalPrice:
+          type: number
+          format: float
+          example: 1299.0
+        colors:
+          type: array
+          items:
+            type: string
+          example: ["酒红色", "墨绿色"]
+        availableSizes:
+          type: array
+          items:
+            type: string
+          example: ["S", "M", "L"]
+        styleTags:
+          type: array
+          items:
+            type: string
+          example: ["优雅", "正式"]
+        sceneTags:
+          type: array
+          items:
+            type: string
+          example: ["晚宴", "年会"]
+        imageUrl:
+          type: string
+          format: uri
+        stockQuantity:
+          type: integer
+          example: 45
+        rating:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 5
+          example: 4.7
+
+    ProductSearchRequest:
+      type: object
+      properties:
+        category:
+          type: string
+        colors:
+          type: array
+          items:
+            type: string
+        styleTags:
+          type: array
+          items:
+            type: string
+        sceneTags:
+          type: array
+          items:
+            type: string
+        minPrice:
+          type: number
+          format: float
+        maxPrice:
+          type: number
+          format: float
+        excludeProductIds:
+          type: array
+          items:
+            type: string
+          description: 排除的商品ID（负反馈处理）
+        similarToImageUrl:
+          type: string
+          description: 基于图片相似性检索
+        limit:
+          type: integer
+          default: 10
+          maximum: 50
+
+    Lookbook:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        style:
+          type: string
+        scene:
+          type: string
+        productIds:
+          type: array
+          items:
+            type: string
+        overallImageUrl:
+          type: string
+        description:
+          type: string
+
+    LookbookSearchRequest:
+      type: object
+      properties:
+        style:
+          type: string
+        scene:
+          type: string
+        season:
+          type: string
+        limit:
+          type: integer
+          default: 5
+
+    SessionDetail:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [ACTIVE, COMPLETED, ABANDONED]
+        intent:
+          type: string
+        category:
+          type: string
+        turnCount:
+          type: integer
+        startedAt:
+          type: string
+          format: date-time
+        endedAt:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: "INVALID_INPUT"
+        message:
+          type: string
+          example: "用户ID格式不正确"
+        details:
+          type: object
+
+  responses:
+    BadRequest:
+      description: 请求参数错误
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    NotFound:
+      description: 资源不存在
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    TooManyRequests:
+      description: 请求频率超限
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    InternalServerError:
+      description: 服务器内部错误
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []

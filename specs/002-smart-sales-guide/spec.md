@@ -12,7 +12,18 @@
 - Q: 如何处理跨品类的“穿搭推荐”场景？ → A: **"Lookbook" First (优先推荐整体搭配)**：当检测到多品类/穿搭需求时，优先基于风格/场景推荐预设的整套搭配（Lookbook），用户选中某套搭配后，再针对具体单品逐一确认尺码等细节。
 - Q: 当用户反馈涉及缺失的元数据（如“领口”标签缺失）时如何处理？ → A: **视觉相似性/差异性检索**：利用商品图片的向量特征（Embedding），检索在视觉特征上与被拒绝商品（或其特定区域）差异较大的款式，不依赖纯文本标签。
 - Q: 商品检索机制是否直接查询数据库？ → A: **提供抽象查询工具 (Tool-based Query)**：不直接查库，而是通过封装好的 Search Tools (Tool-based Query) 暴露给 Agent。Agent 构建查询参数，工具负责执行 SQL/Vector 混合检索并返回标准化结果。
-- Q: 负反馈处理是“重排序”还是“重新推荐”？ → A: **重新生成候选集 (Refresh Candidates)**：系统接收负反馈后，生成新的排除条件（如 `exclude_color='red'`），重新调用推荐工具生成一组全新的候选商品，而非仅在原结果中重排。
+- Q: 负反馈处理是"重排序"还是"重新推荐"？ → A: **重新生成候选集 (Refresh Candidates)**：系统接收负反馈后，生成新的排除条件（如 `exclude_color='red'`），重新调用推荐工具生成一组全新的候选商品，而非仅在原结果中重排。
+- Q: 用户画像、会话数据、反馈记录的存储方式？ → A: **智能体记忆 (Agent Memory)**：用户画像、会话数据、反馈记录通过 LangChain4j Agent Memory 机制实现，不存储在 MySQL 等关系型数据库中。
+- Q: 智能体记忆的持久化范围和跨会话策略？ → A: **混合模式持久化**：会话上下文（Dialogue Session）仅在当前会话内维护，会话结束后清空；用户画像（User Profile）和偏好标签通过 Agent Memory 的持久化后端跨会话保留，支持用户身份识别后恢复历史偏好。
+- Q: 用户身份识别机制？ → A: **基于会话 ID/Token，可选用户登录**：系统为每个会话分配唯一标识（会话 ID/Token），匿名用户仅使用会话内记忆；登录用户可通过用户 ID 关联历史偏好，实现跨会话的用户画像恢复。
+- Q: Agent Memory 持久化后端的具体实现？ → A: **数据库持久化后端**：LangChain4j Agent Memory 使用关系型数据库（PostgreSQL/MySQL）作为持久化后端，存储用户画像和偏好标签，实现跨会话数据保留。
+- Q: 库存和促销服务的集成方式？ → A: **通过工具封装外部 API**：提供 InventoryCheckTool 和 PromotionTool，封装外部库存和促销服务的 API 调用，Agent 通过工具访问这些服务，不直接查询数据库。
+- Q: Elasticsearch 的用途和商品/搭配信息的存储方式？ → A: **Elasticsearch 作为向量数据库用于销售政策知识库**：Elasticsearch 主要用于搭建销售政策知识库（向量检索）。商品信息和搭配信息通过 Tool 的方式提供，不存储在 Elasticsearch 中。
+- Q: 销售政策知识库的具体内容和用途？ → A: **销售话术+推荐策略**：销售政策知识库包含销售话术模板和推荐策略（如价格敏感用户策略、风格偏好策略），用于生成个性化的推荐理由和销售话术。
+- Q: 商品和搭配信息 Tool 的数据源？ → A: **外部 API/服务**：商品信息和搭配信息由外部服务提供，ProductSearchTool 和 LookbookSearchTool 封装外部 API 调用，不直接访问内部数据库。
+- Q: 销售政策知识库的访问方式？ → A: **直接向量检索**：Agent 直接调用 Elasticsearch 向量检索 API 查询销售政策知识库，不通过 Tool 封装。
+- Q: 视觉向量检索的实现方式？ → A: **CLIP 模型作为独立服务**：CLIP 模型作为独立服务（API），ProductSearchTool 封装服务调用，用于生成商品图片向量和进行视觉相似性检索。
+- Q: 为什么有2个controller（ChatController 和 ProductController）？ → A: **仅需 ChatController**：所有商品相关操作都通过 Agent 和 Tool 完成，商品信息通过 Tool 封装外部 API 提供，不需要单独的 ProductController。系统仅需 ChatController 处理对话交互。
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -110,22 +121,30 @@
 - **FR-001**: 系统必须支持自然语言处理，能够提取 text/image 输入中的意图（Intent）、实体（Entity - 品类、颜色、风格）和情感倾向。
 - **FR-002**: 系统必须具备多轮对话管理能力，能够维护上下文（Context），并在缺失必要参数时生成澄清性问题。
   - **FR-002-1**: 采用混合模式判断信息缺失：由 AI 推断涉及品类，调用工具查询该品类的必填属性配置（如裤子需腰围/版型），结合上下文判断是否需追问。
-  - **FR-002-2**: 针对多品类/穿搭意图，优先触发“Lookbook 推荐模式”，延迟单品属性收集环节。
-- **FR-003**: 系统必须通过封装的 **Search Tools** 进行商品检索，Agent 不直接访问数据库。工具需支持按属性（价格、材质、销量等）组合过滤和排序。
-  - **FR-003-1**: 支持基于视觉向量（Visual Embedding）的相似性/差异性检索，以处理元数据缺失场景。
+  - **FR-002-2**: 针对多品类/穿搭意图，优先触发"Lookbook 推荐模式"，延迟单品属性收集环节。
+  - **FR-002-3**: 用户画像、会话上下文、反馈记录通过 LangChain4j Agent Memory 机制管理。会话上下文仅在当前会话内维护，会话结束后清空；用户画像和偏好标签通过 Agent Memory 的持久化后端跨会话保留，支持用户身份识别后恢复历史偏好。
+  - **FR-002-4**: 系统为每个会话分配唯一标识（会话 ID/Token）。匿名用户仅使用会话内记忆；登录用户可通过用户 ID 关联历史偏好，实现跨会话的用户画像恢复。
+  - **FR-002-5**: LangChain4j Agent Memory 使用关系型数据库（PostgreSQL/MySQL）作为持久化后端，存储用户画像和偏好标签，实现跨会话数据保留。会话上下文数据仅在内存中维护，不持久化。
+- **FR-003**: 系统必须通过封装的 **Search Tools** 进行商品检索，Agent 不直接访问数据库。商品信息通过 Tool 的方式提供（如 ProductSearchTool），工具封装外部 API 调用获取商品数据，需支持按属性（价格、材质、销量等）组合过滤和排序。
+  - **FR-003-1**: 支持基于视觉向量（Visual Embedding）的相似性/差异性检索，以处理元数据缺失场景。CLIP 模型作为独立服务（API），ProductSearchTool 封装服务调用生成向量。
+- **FR-009**: 系统必须使用 Elasticsearch 作为向量数据库，搭建销售政策知识库，支持基于向量检索的销售政策查询和推荐。
+  - **FR-009-1**: 销售政策知识库包含销售话术模板和推荐策略（如价格敏感用户策略、风格偏好策略），用于生成个性化的推荐理由和销售话术。
+  - **FR-009-2**: Agent 直接调用 Elasticsearch 向量检索 API 查询销售政策知识库，不通过 Tool 封装。
 - **FR-004**: 系统必须能够生成个性化的“推荐理由”（Copywriting），结合用户需求点（Point of Interest）和商品卖点（Selling Point）。
 - **FR-005**: 系统必须支持基于用户反馈（Negative Feedback）的动态优化。
   - **FR-005-1**: 当接收负反馈时，Agent 需生成显式排除条件（如 `exclude_keywords`, `exclude_product_ids`），并调用搜索工具重新生成全新的候选集，而非仅在原结果中重排序。
 - **FR-006**: 系统必须提供尺码推荐算法，基于用户身高体重及商品版型数据计算建议尺码。
 - **FR-007**: 系统必须集成库存和促销服务，实时展示准确的价格和库存状态。
-- **FR-008**: 系统必须维护“搭配库”（Outfit/Lookbook），支持基于风格、场景检索整套搭配。
+  - **FR-007-1**: 通过工具封装外部服务：提供 InventoryCheckTool 和 PromotionTool，封装外部库存和促销服务的 API 调用，Agent 通过工具访问这些服务，不直接查询数据库。
+- **FR-008**: 系统必须通过封装的 **Lookbook Tools** 提供搭配信息，Agent 通过工具（如 LookbookSearchTool）访问搭配数据，不直接访问数据库。搭配信息通过 Tool 的方式提供，工具封装外部 API 调用获取搭配数据，支持基于风格、场景检索整套搭配。
 
 ### Key Entities
 
-- **User Profile**: 包含用户偏好标签、历史浏览记录、当前会话需求（尺寸、预算、场景）。
-- **Product**: 商品ID、基础属性（颜色/尺码/材质）、营销属性（卖点/话术）、库存价格状态、图片向量（Visual Embedding）。
-- **Outfit (Lookbook)**: 搭配ID、包含的单品列表、适用场景/风格标签、整体展示图（AI生成/预设）。
-- **Dialogue Session**: 会话上下文，包含当前状态（感知/澄清/推荐/转化）、历史交互轮次。
+- **User Profile**: 包含用户偏好标签、历史浏览记录、当前会话需求（尺寸、预算、场景）。通过 LangChain4j Agent Memory 持久化后端（关系型数据库 PostgreSQL/MySQL）跨会话保留。匿名用户仅使用会话内记忆；登录用户通过用户 ID 关联历史偏好。
+- **Product**: 商品ID、基础属性（颜色/尺码/材质）、营销属性（卖点/话术）、库存价格状态、图片向量（Visual Embedding）。通过 Tool 的方式提供（如 ProductSearchTool），不存储在 Elasticsearch。
+- **Outfit (Lookbook)**: 搭配ID、包含的单品列表、适用场景/风格标签、整体展示图（AI生成/预设）。通过 Tool 的方式提供（如 LookbookSearchTool），不存储在 Elasticsearch。
+- **Sales Policy Knowledge Base**: 销售政策知识库，包含销售话术模板和推荐策略（如价格敏感用户策略、风格偏好策略）。存储在 Elasticsearch（向量数据库），支持基于向量检索的知识查询，用于生成个性化的推荐理由和销售话术。
+- **Dialogue Session**: 会话上下文，包含当前状态（感知/澄清/推荐/转化）、历史交互轮次。通过 LangChain4j Agent Memory 在会话内维护，会话结束后清空。
 
 ## Success Criteria *(mandatory)*
 

@@ -1,0 +1,347 @@
+openapi: 3.0.3
+info:
+  title: Smart Sales Guide Chat API
+  description: 智能导购机器人对话API
+  version: 1.0.0
+  contact:
+    name: AI Lab Team
+
+servers:
+  - url: https://api.example.com/v1
+    description: Production server
+  - url: http://localhost:8080/v1
+    description: Local development server
+
+paths:
+  /chat/sessions:
+    post:
+      summary: 创建新会话
+      description: 创建一个新的对话会话，返回会话ID
+      operationId: createSession
+      tags:
+        - Chat
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  description: 用户ID（登录用户），可选
+                  example: "user_12345"
+      responses:
+        '201':
+          description: 会话创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /chat/sessions/{sessionId}/messages:
+    post:
+      summary: 发送消息
+      description: 向指定会话发送用户消息，返回AI回复
+      operationId: sendMessage
+      tags:
+        - Chat
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 会话ID
+          example: "session_abc123"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+      responses:
+        '200':
+          description: 消息处理成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /chat/sessions/{sessionId}:
+    get:
+      summary: 获取会话信息
+      description: 获取指定会话的当前状态和信息
+      operationId: getSession
+      tags:
+        - Chat
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 会话ID
+          example: "session_abc123"
+      responses:
+        '200':
+          description: 会话信息
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionInfo'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: 删除会话
+      description: 删除指定会话及其上下文
+      operationId: deleteSession
+      tags:
+        - Chat
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 会话ID
+          example: "session_abc123"
+      responses:
+        '204':
+          description: 会话删除成功
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    SessionResponse:
+      type: object
+      required:
+        - sessionId
+        - createdAt
+      properties:
+        sessionId:
+          type: string
+          description: 会话ID
+          example: "session_abc123"
+        userId:
+          type: string
+          nullable: true
+          description: 用户ID（如果已登录）
+          example: "user_12345"
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+          example: "2026-01-06T10:00:00Z"
+
+    MessageRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          description: 消息内容（文本）
+          example: "我想买一件红色连衣裙"
+        imageUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: 图片URL（可选）
+          example: "https://example.com/image.jpg"
+        imageBase64:
+          type: string
+          nullable: true
+          description: 图片Base64编码（可选，与imageUrl二选一）
+          example: "data:image/jpeg;base64,..."
+
+    MessageResponse:
+      type: object
+      required:
+        - messageId
+        - content
+        - timestamp
+      properties:
+        messageId:
+          type: string
+          description: 消息ID
+          example: "msg_12345"
+        content:
+          type: string
+          description: AI回复内容
+          example: "好的，我为您推荐几款红色连衣裙..."
+        recommendations:
+          type: array
+          description: 推荐的商品或搭配列表
+          items:
+            $ref: '#/components/schemas/Recommendation'
+        state:
+          type: string
+          enum: [GREETING, INTENT_RECOGNITION, CLARIFICATION, RECOMMENDATION, FEEDBACK, CONVERSION]
+          description: 当前会话状态
+          example: "RECOMMENDATION"
+        requiresClarification:
+          type: boolean
+          description: 是否需要用户澄清
+          example: false
+        clarificationQuestion:
+          type: string
+          nullable: true
+          description: 澄清问题（如果需要）
+          example: "请问您平时习惯穿什么版型？"
+        timestamp:
+          type: string
+          format: date-time
+          description: 消息时间戳
+          example: "2026-01-06T10:00:05Z"
+
+    Recommendation:
+      type: object
+      required:
+        - type
+        - id
+        - name
+      properties:
+        type:
+          type: string
+          enum: [PRODUCT, LOOKBOOK]
+          description: 推荐类型（商品或搭配）
+          example: "PRODUCT"
+        id:
+          type: string
+          description: 商品ID或搭配ID
+          example: "product_12345"
+        name:
+          type: string
+          description: 名称
+          example: "正红色A字连衣裙"
+        reason:
+          type: string
+          description: 推荐理由
+          example: "这款正红色非常衬肤色，剪裁适合晚宴场合"
+        price:
+          type: number
+          format: double
+          nullable: true
+          description: 价格
+          example: 599.00
+        originalPrice:
+          type: number
+          format: double
+          nullable: true
+          description: 原价（如有促销）
+          example: 799.00
+        promotionText:
+          type: string
+          nullable: true
+          description: 促销信息
+          example: "限时8折"
+        imageUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: 图片URL
+          example: "https://example.com/product.jpg"
+        stockStatus:
+          type: object
+          nullable: true
+          description: 库存状态
+          properties:
+            available:
+              type: boolean
+            lowStock:
+              type: boolean
+            stockCount:
+              type: integer
+              nullable: true
+
+    SessionInfo:
+      type: object
+      required:
+        - sessionId
+        - currentState
+        - createdAt
+      properties:
+        sessionId:
+          type: string
+          description: 会话ID
+          example: "session_abc123"
+        userId:
+          type: string
+          nullable: true
+          description: 用户ID
+          example: "user_12345"
+        currentState:
+          type: string
+          enum: [GREETING, INTENT_RECOGNITION, CLARIFICATION, RECOMMENDATION, FEEDBACK, CONVERSION]
+          description: 当前状态
+          example: "RECOMMENDATION"
+        messageCount:
+          type: integer
+          description: 消息数量
+          example: 6
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+          example: "2026-01-06T10:00:00Z"
+        lastActivityAt:
+          type: string
+          format: date-time
+          description: 最后活动时间
+          example: "2026-01-06T10:05:00Z"
+
+  responses:
+    BadRequest:
+      description: 请求参数错误
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: 资源未找到
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalServerError:
+      description: 服务器内部错误
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: 错误代码
+          example: "INVALID_REQUEST"
+        message:
+          type: string
+          description: 错误消息
+          example: "请求参数无效"
+        details:
+          type: object
+          nullable: true
+          description: 错误详情
+          additionalProperties: true
