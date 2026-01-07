@@ -1,9 +1,12 @@
 <!--
 SYNC IMPACT REPORT
-Version: 0.0.0 -> 1.0.0
-- Defined Principles: Core Architecture, RAG Architecture, Coding & API Standards.
-- Replaced placeholders with concrete values based on user input.
-- Validated alignment with project structure (Java, Spring Boot).
+Version: 1.0.0 -> 1.1.0
+- Added Principle IV: Documentation Language Standards (正文中文，标题英文)
+- Version bump rationale: MINOR - new principle added without breaking existing rules
+- Templates status:
+  ✅ spec-template.md - Updated with language standard comment reminder
+  ✅ plan-template.md - Already uses English headings, compliant
+  ✅ tasks-template.md - Already uses English headings, compliant
 -->
 # AI Lab Constitution
 
@@ -19,6 +22,12 @@ Version: 0.0.0 -> 1.0.0
 - 必须使用 **Lombok** 简化 POJO 开发。
 - API 必须遵循 **RESTful** 规范，并集成 **Swagger** 进行文档化。
 - **Hutool** 必须作为工具类的首选库，以保持代码简洁性。
+
+### IV. Documentation Language Standards
+所有由 spec-kit 生成的文档必须遵循以下语言规范：
+- **标题（1、2、3级标题）**：必须使用英文。
+- **正文内容**：必须使用中文。
+- **理由**：保持标题的国际化可读性和技术术语一致性，同时确保正文内容对中文团队的可理解性。
 
 ## Technology Stack
 
@@ -40,4 +49,4 @@ Version: 0.0.0 -> 1.0.0
 - **修订**: 对这些原则的变更需要文档化的 PR 和团队共识。
 - **合规性**: 所有代码审查必须验证是否符合这些原则。
 
-**版本**: 1.0.0 | **批准日期**: 2026-01-05 | **最后修订**: 2026-01-05
+**版本**: 1.1.0 | **批准日期**: 2026-01-05 | **最后修订**: 2026-01-07

@@ -1,5 +1,11 @@
 # Feature Specification: [FEATURE NAME]
 
+<!--
+  LANGUAGE STANDARD (Constitution Principle IV):
+  - Headings (1st, 2nd, 3rd level): MUST use English
+  - Body content: MUST use Chinese
+-->
+
 **Feature Branch**: `[###-feature-name]`  
 **Created**: [DATE]  
 **Status**: Draft  
