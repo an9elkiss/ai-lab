@@ -113,7 +113,7 @@ flowchart TD
     
     subgraph Response_Generation [Response Generation]
         Observation -->|基于结果| GenerateReason[生成推荐理由]
-        GenerateReason -->|应用话术| PolishResponse[润色回复 (RAG辅助)]
+        GenerateReason -->|应用话术| PolishResponse[润色回复 RAG辅助]
     end
     
     PolishResponse --> UpdateMem[更新记忆]
