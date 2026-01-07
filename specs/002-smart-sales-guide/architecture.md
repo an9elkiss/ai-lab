@@ -28,6 +28,8 @@ C4Context
     Rel(sales_bot, ecommerce_platform, "查询商品/库存/搭配", "REST API")
     Rel(sales_bot, clip_service, "生成图片向量", "REST API")
     Rel(sales_bot, llm_service, "发送Prompt/获取推理结果", "HTTPS")
+
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 ```
 
 ---
@@ -79,6 +81,8 @@ C4Container
     
     Rel(agent_core, rag_service, "检索销售话术")
     Rel(rag_service, es, "向量检索 (k-NN)", "ES Client")
+
+    UpdateLayoutConfig($c4ShapeInRow="4", $c4BoundaryInRow="1")
 ```
 
 ---
