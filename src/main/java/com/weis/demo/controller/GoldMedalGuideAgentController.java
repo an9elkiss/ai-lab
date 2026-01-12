@@ -1,11 +1,9 @@
 package com.weis.demo.controller;
 
-import com.weis.demo.agent.DoormanAgent;
+import com.weis.demo.agent.GoldMedalGuideAgent;
 import dev.langchain4j.data.message.ImageContent;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -13,18 +11,16 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @Tag(name = "金牌导购代理", description = "智能服装导购代理API，支持图像识别和穿搭建议")
 @RequestMapping("/agent/guide")
 public class GoldMedalGuideAgentController {
 
-    private final DoormanAgent doormanAgent;
+    private final GoldMedalGuideAgent goldMedalGuideAgent;
 
-    public GoldMedalGuideAgentController(DoormanAgent doormanAgent) {
-        this.doormanAgent = doormanAgent;
+    public GoldMedalGuideAgentController(GoldMedalGuideAgent goldMedalGuideAgent) {
+        this.goldMedalGuideAgent = goldMedalGuideAgent;
     }
 
     @Operation(
@@ -52,7 +48,7 @@ public class GoldMedalGuideAgentController {
             imageContent = ImageContent.from(base64Image, mimeType);
         }
 
-        String result = doormanAgent.answer(consultation, imageContent, memberId.toString());
+        String result = goldMedalGuideAgent.answer(consultation, memberId.toString());
         return result;
     }
 }
