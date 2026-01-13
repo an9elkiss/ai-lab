@@ -1,38 +1,24 @@
 package com.weis.demo.config;
 
-import dev.langchain4j.data.document.Document;
-import dev.langchain4j.data.document.DocumentSplitter;
-import dev.langchain4j.data.document.parser.TextDocumentParser;
-import dev.langchain4j.data.document.splitter.DocumentSplitters;
+import com.weis.demo.rag.AIMessageContentInjector;
+import com.weis.demo.rag.AIMessageQueryRouter;
+import com.weis.demo.rag.AIMessageQueryTransformer;
 import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.model.TokenCountEstimator;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.community.model.dashscope.QwenEmbeddingModel;
-import dev.langchain4j.model.openai.OpenAiTokenCountEstimator;
+import dev.langchain4j.model.input.PromptTemplate;
+import dev.langchain4j.rag.DefaultRetrievalAugmentor;
+import dev.langchain4j.rag.RetrievalAugmentor;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
 import dev.langchain4j.store.embedding.EmbeddingStore;
-import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
 import dev.langchain4j.store.embedding.elasticsearch.ElasticsearchEmbeddingStore;
 import org.elasticsearch.client.RestClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-
-import java.io.IOException;
-
-import static dev.langchain4j.data.document.loader.FileSystemDocumentLoader.loadDocument;
 
 @Configuration
 public class RAGConfig {
-
-
-    @Bean
-    TokenCountEstimator tokenCountEstimator() {
-        // DeepSeek 使用类似 GPT 的分词器，使用 GPT-3.5-turbo 的分词器作为兼容选项
-        return new OpenAiTokenCountEstimator("gpt-3.5-turbo");
-    }
 
     @Bean
     EmbeddingModel embeddingModel() {
@@ -45,34 +31,13 @@ public class RAGConfig {
     }
 
     @Bean
-    EmbeddingStore<TextSegment> embeddingStore(EmbeddingModel embeddingModel,
-                                               ResourceLoader resourceLoader,
-                                               TokenCountEstimator tokenizer,
-                                               RestClient restClient) throws IOException {
+    EmbeddingStore<TextSegment> embeddingStore(RestClient restClient) {
 
         // 1. 创建 Elasticsearch 8 嵌入存储
         EmbeddingStore<TextSegment> embeddingStore = ElasticsearchEmbeddingStore.builder()
                 .restClient(restClient)
-                .indexName("ski-equipment-knowledge")
+                .indexName("bosideng-brand-story")
                 .build();
-
-        // 注意：已存入ES，不要重复执行
-//        // 2. 加载示例文档
-//        Resource resource = resourceLoader.getResource("classpath:ski-equipment-knowledge.txt");
-//        Document document = loadDocument(resource.getFile().toPath(), new TextDocumentParser());
-//
-//        // 3. 分割文档并存储到 Elasticsearch
-//        // 将文档分割成每段 300 个 token
-//        // 将段落转换为嵌入向量
-//        // 将嵌入向量存储到 Elasticsearch
-//        DocumentSplitter documentSplitter = DocumentSplitters.recursive(300, 0, tokenizer);
-//        EmbeddingStoreIngestor ingestor = EmbeddingStoreIngestor.builder()
-//                .documentSplitter(documentSplitter)
-//                .embeddingModel(embeddingModel)
-//                .embeddingStore(embeddingStore)
-//                .build();
-//        ingestor.ingest(document);
-
         return embeddingStore;
     }
 
@@ -92,6 +57,22 @@ public class RAGConfig {
                 .maxResults(maxResults)
                 .minScore(minScore)
                 .build();
+    }
+
+    @Bean
+    RetrievalAugmentor retrievalAugmentor(AIMessageQueryTransformer queryTransformer, AIMessageQueryRouter queryRouter) {
+
+        RetrievalAugmentor retrievalAugmentor = DefaultRetrievalAugmentor.builder()
+                .queryTransformer(queryTransformer)
+                .queryRouter(queryRouter)
+                .contentInjector(new AIMessageContentInjector(PromptTemplate.from("""
+                    {{userMessage}}
+
+                    **注意**回答时基于以下事实:
+                    {{contents}}""")))
+                .build();
+
+        return retrievalAugmentor;
     }
 
 

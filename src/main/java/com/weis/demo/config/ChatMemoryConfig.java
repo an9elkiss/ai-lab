@@ -4,6 +4,7 @@ import com.weis.demo.memory.RedisChatMemoryStore;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.TokenWindowChatMemory;
 import dev.langchain4j.model.TokenCountEstimator;
+import dev.langchain4j.model.openai.OpenAiTokenCountEstimator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +21,12 @@ import org.springframework.context.annotation.Configuration;
 public class ChatMemoryConfig {
 
     private final RedisChatMemoryStore redisChatMemoryStore;
+
+    @Bean
+    TokenCountEstimator tokenCountEstimator() {
+        // DeepSeek 使用类似 GPT 的分词器，使用 GPT-3.5-turbo 的分词器作为兼容选项
+        return new OpenAiTokenCountEstimator("gpt-3.5-turbo");
+    }
 
     /**
      * 配置聊天记忆提供者

@@ -4,14 +4,14 @@ import com.weis.demo.agent.DoormanAgent;
 import com.weis.demo.agent.GoldMedalGuideAgent;
 import com.weis.demo.agent.VisualAnalyzerAgent;
 import com.weis.demo.agent.VisualGuideAgent;
-import com.weis.demo.agent.provider.DemoSystemMessageProvider;
+import com.weis.demo.agent.provider.GoldMedalGuideSystemMessageProvider;
 import com.weis.demo.agent.typedkey.Image;
 import com.weis.demo.tool.ItemTools;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.community.model.dashscope.QwenChatModel;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.rag.content.retriever.ContentRetriever;
+import dev.langchain4j.rag.RetrievalAugmentor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -31,8 +31,8 @@ public class AgentConfig {
     @Bean
     public GoldMedalGuideAgent goldMedalGuideAgent(ChatModel chatModel,
                                                    ChatMemoryProvider chatMemoryProvider,
-                                                   DemoSystemMessageProvider systemMessageProvider,
-                                                   ContentRetriever contentRetriever,
+                                                   GoldMedalGuideSystemMessageProvider systemMessageProvider,
+                                                   RetrievalAugmentor retrievalAugmentor,
                                                    ItemTools itemTools
 //                                                   ToolProvider toolProvider
     ) {
@@ -40,8 +40,8 @@ public class AgentConfig {
                 .chatModel(chatModel)
                 .chatMemoryProvider(chatMemoryProvider)
                 .systemMessageProvider(systemMessageProvider)
+                .retrievalAugmentor(retrievalAugmentor)
 //                .toolProvider(toolProvider)
-//                .contentRetriever(contentRetriever)
 //                .tools(itemTools)
                 .build();
     }
