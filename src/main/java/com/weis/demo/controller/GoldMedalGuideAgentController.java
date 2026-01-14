@@ -1,7 +1,10 @@
 package com.weis.demo.controller;
 
+import cn.hutool.json.JSONUtil;
 import com.weis.demo.agent.GoldMedalGuideAgent;
+import com.weis.demo.dto.AIMessageDTO;
 import com.weis.demo.dto.MemoryIdInfoDTO;
+import com.weis.demo.dto.constant.IntentType;
 import com.weis.demo.memory.MemoryIdCreator;
 import com.weis.demo.rag.RegDocumentSplitter;
 import dev.langchain4j.data.document.Document;
@@ -26,6 +29,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+
+import static com.weis.demo.dto.constant.IntentType.DISCOVER_BRAND;
 
 @Slf4j
 @RestController
@@ -68,7 +73,26 @@ public class GoldMedalGuideAgentController {
         }
 
         String result = goldMedalGuideAgent.answer(consultation, memoryId);
+
+        // 需要再次执行，如：使用RAG
+        if (oneMoreTime(result)) {
+            result = goldMedalGuideAgent.answer(result, memoryId);
+        }
+
         return result;
+    }
+
+    private boolean oneMoreTime(String result){
+
+        if (result == null || !result.startsWith("{")) return false;
+
+        AIMessageDTO aiMessageDTO = JSONUtil.toBean(result, AIMessageDTO.class);
+
+        // 获取意图类型
+        IntentType intentType = IntentType.fromCode(aiMessageDTO.getIntentType());
+
+        // 如果intentType = DISCOVER_BRAND
+        return intentType == DISCOVER_BRAND;
     }
 
     @Operation(
