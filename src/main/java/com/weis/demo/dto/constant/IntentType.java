@@ -17,14 +17,14 @@ public enum IntentType {
     DISCOVER_BRAND("discover_brand", "了解品牌故事、理念等", DiscoverBrandKeyInfo.class),
     
     /**
-     * 搜索商品
-     */
-    SEARCH_PRODUCT("search_product", "搜索商品", SearchProductKeyInfo.class),
-    
-    /**
      * 检索增强生成
      */
     RETRIEVAL_AUGMENTED_GENERATION("retrieval_augmented_generation", "检索增强生成", RAGKeyInfo.class),
+    
+    /**
+     * 商品搜索
+     */
+    ITEM_SEARCH("item_search", "商品搜索", ItemSearchKeyInfo.class),
     
     /**
      * 除以上类型之外的其他意图

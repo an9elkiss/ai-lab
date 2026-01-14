@@ -3,10 +3,10 @@ package com.weis.demo.dto;
 import lombok.Data;
 
 /**
- * 检索增强生成(Retrieval Augmented Generation)意图的关键信息
+ * 商品搜索意图的关键信息
  */
 @Data
-public class RAGKeyInfo implements AIMessageKeyInfo {
+public class ItemSearchKeyInfo implements AIMessageKeyInfo {
 
     /**
      * 后续流程，固定值："END"
@@ -17,4 +17,9 @@ public class RAGKeyInfo implements AIMessageKeyInfo {
      * 根据角色定位生成的合理回复
      */
     private String reply;
+
+    /**
+     * 搜索结果数据
+     */
+    private String searchResult;
 }

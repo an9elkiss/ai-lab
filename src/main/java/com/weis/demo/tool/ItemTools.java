@@ -1,9 +1,10 @@
 package com.weis.demo.tool;
 
+import cn.hutool.json.JSONUtil;
 import com.weis.demo.dto.ItemDTO;
+import com.weis.demo.dto.command.ItemSearchCmd;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
-import dev.langchain4j.model.output.structured.Description;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -26,21 +27,47 @@ public class ItemTools {
         this.restTemplate = new RestTemplate();
     }
 
-    @Tool(name = "item-search-tool", value = "根据关键词搜索商品信息，返回匹配的商品列表。可以搜索商品名称、颜色、类别等相关信息，帮助用户找到合适的商品。")
-    public List<ItemDTO> search(@P("搜索关键词，可以是商品名称、颜色、类别等，例如：连衣裙、太阳镜、风衣") String keyword) {
+    @Tool(name = "item-search-tool", value = """
+            帮助用户找到合适的商品，返回匹配的商品列表。
+            调用此工具后将意图设置为item_search，并将返回的数据填入\\"searchResult\\"字段。
+            完全信任item-search-tool返回的数据，即使返回了空列表后者看似无关的商品。
+            如果返回了空列表，代表没有合适的商品。根据这一事实结合你的角色定位生成合理的回复。
+            
+            **注意**：
+            仅当用户输入中明确包含或可清晰推断出以下全部两个关键属性时，才能使用item-search-tool：
+            1.目标用户性别：商品主要穿着者的性别。
+            2.穿着场合/场景：商品计划被使用的具体场合（如：上班、约会、婚礼、度假、日常通勤）。
+            处理逻辑：
+            如果以上任一属性缺失或模糊，智能体应优先判定为 other意图，并通过主动追问进行澄清，不得直接使用item-search-tool。
+            """)
+    public List<ItemDTO> search(@P("""
+            JSON格式的搜索参数，形如：
+            {
+              "keyWord": "主要品类关键词，如'连衣裙'",
+              "scene": "场景",
+              "gender": "性别（male/female）",
+              "style": "风格",
+              "color": "颜色",
+              "priceRange": "价格区间"
+            }
+            尽可能从用户输入中提取并填充上述字段。
+            """) String params) {
         try {
+
+            ItemSearchCmd cmd = JSONUtil.toBean(params, ItemSearchCmd.class);
+
             // 构建请求URL
-            String baseUrl = "https://weisapi-sit.baozun.com/api/v2/item/search";
+            String baseUrl = "https://weisapi.baozun.com/api/v2/item/search";
             UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(baseUrl)
                     .queryParam("pageNo", 1)
                     .queryParam("pageSize", 3)
-                    .queryParam("keyword", keyword);
+                    .queryParam("keyword", cmd.getKeyWord());
 
             // 设置请求头
             HttpHeaders headers = new HttpHeaders();
             headers.set("content-type", "application/json");
-            headers.set("x-ma-c", "E95A68EC92C5F7BED265CC899514E591");
-            headers.set("x-shop-c", "test");
+            headers.set("x-ma-c", "84a7e4fb8abda8843afb8f51919d0ebe");
+            headers.set("x-shop-c", "polenebs");
 
             // 创建请求实体
             HttpEntity<String> entity = new HttpEntity<>(headers);

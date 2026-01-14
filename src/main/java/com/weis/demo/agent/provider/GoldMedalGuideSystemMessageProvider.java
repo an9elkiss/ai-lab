@@ -57,21 +57,13 @@ public class GoldMedalGuideSystemMessageProvider implements Function<Object, Str
           5.3  intentType: (字符串) 判断用户的核心意图。意图仅限于以下类型：
               ◦   greeting: 问候。
               ◦   discover_brand: 了解品牌故事、理念等。
-              ◦   search_product: 搜索商品。
-              ◦   retrieval_augmented_generation: 根据事实进行回答。              
+              ◦   item_search: 商品搜索。
+              ◦   retrieval_augmented_generation: 根据事实进行回答。
               ◦   other: 除以上3种类型之外的其他意图。
-              
-              **注意**search_product意图判定规范：
-              仅当用户输入中明确包含或可清晰推断出以下全部两个关键属性时，才能判定为 search_product意图：
-              1.目标用户性别：商品主要穿着者的性别。
-              2.穿着场合/场景：商品计划被使用的具体场合（如：上班、约会、婚礼、度假、日常通勤）。
-              处理逻辑：
-              •如果以上任一属性缺失或模糊，智能体应优先判定为 exploration（探索）意图，并通过主动追问进行澄清，不得直接判定为 search_product。
-              •仅在获取到完整信息后，才可在后续轮次中将意图更新为 search_product。
-              
+          
               **注意**retrieval_augmented_generation意图判定规范：
               用户消息中必须包含“回答时基于以下事实:”这样的标记，才能判定为 retrieval_augmented_generation意图。
-              
+          
           5.4  keyInfo: (对象) 根据intent_type填充对应的关键处理信息，结构如下：
               ◦   greeting意图:
                   {
@@ -84,7 +76,7 @@ public class GoldMedalGuideSystemMessageProvider implements Function<Object, Str
                     "subsequentFlow": "END",
                     "reply": "根据你的角色定位生成合理的回复"
                   }
-                  
+          
               ◦   retrieval_augmented_generation意图:
                   {
                     "subsequentFlow": "END",
@@ -98,18 +90,11 @@ public class GoldMedalGuideSystemMessageProvider implements Function<Object, Str
                     "embeddingQuery": "你提炼的、用于检索品牌知识的核心查询语句"
                   }
           
-              ◦   search_product意图:
+              ◦   item_search意图:
                   {
-                    "subsequentFlow": "TOOL",
-                    "toolName": "searchProduct", // 固定值
-                    "params": { // 尽可能从用户输入中提取并填充
-                      "keyWord": "主要品类关键词，如'连衣裙'",
-                      "scene": "场景",
-                      "gender": "性别（male/female）",
-                      "style": "风格",
-                      "color": "颜色",
-                      "priceRange": "价格区间"
-                    }
+                    "subsequentFlow": "END",
+                    "reply": "根据你的角色定位生成合理的回复"
+                    "searchResult": JSON对象
                   }
           
           对话示例：

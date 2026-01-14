@@ -42,7 +42,7 @@ public class AgentConfig {
                 .systemMessageProvider(systemMessageProvider)
                 .retrievalAugmentor(retrievalAugmentor)
 //                .toolProvider(toolProvider)
-//                .tools(itemTools)
+                .tools(itemTools)
                 .build();
     }
 
