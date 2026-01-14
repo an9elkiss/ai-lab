@@ -23,7 +23,7 @@ public class AgentConfig {
     public VisualAnalyzerAgent visualAnalyzerAgent(QwenChatModel chatModel, ChatMemoryProvider chatMemoryProvider) {
         return AgenticServices.agentBuilder(VisualAnalyzerAgent.class)
                 .chatModel(chatModel)
-                .chatMemoryProvider(chatMemoryProvider)
+//                .chatMemoryProvider(chatMemoryProvider)
 //                .summarizedContext("goldMedalGuideAgent")
                 .build();
     }

@@ -2,6 +2,7 @@ package com.weis.demo.controller;
 
 import cn.hutool.json.JSONUtil;
 import com.weis.demo.agent.GoldMedalGuideAgent;
+import com.weis.demo.agent.VisualGuideAgent;
 import com.weis.demo.dto.AIMessageDTO;
 import com.weis.demo.dto.MemoryIdInfoDTO;
 import com.weis.demo.dto.constant.IntentType;
@@ -41,6 +42,8 @@ public class GoldMedalGuideAgentController {
 
     private final GoldMedalGuideAgent goldMedalGuideAgent;
 
+    private final VisualGuideAgent visualGuideAgent;
+
     private final MemoryIdCreator memoryIdCreator;
 
     private final RestClient restClient;
@@ -72,7 +75,12 @@ public class GoldMedalGuideAgentController {
             imageContent = ImageContent.from(base64Image, mimeType);
         }
 
-        String result = goldMedalGuideAgent.answer(consultation, memoryId);
+        String result = null;
+        if (imageContent != null){
+            result = visualGuideAgent.analyze(consultation, imageContent, memoryId);
+        } else {
+            result = goldMedalGuideAgent.answer(consultation, memoryId);
+        }
 
         // 需要再次执行，如：使用RAG
         if (oneMoreTime(result)) {
