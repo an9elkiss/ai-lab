@@ -14,7 +14,8 @@ public class MemoryIdInfoDTO implements Serializable {
     @Serial
     private static final long serialVersionUID = 3544753431317374408L;
 
-    private int memoryType;
+    private String memoryId;
+    private int memoryType = 1;
     private Long storeId;
     private Long shopId;
     private Long memberId;

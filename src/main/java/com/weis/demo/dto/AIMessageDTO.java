@@ -9,5 +9,6 @@ public class AIMessageDTO {
     private String emotion;
     private String intentType;
     private String keyInfo;
+    private AIMessageKeyDTO keyInfoDTO;
 
 }

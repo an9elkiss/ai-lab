@@ -33,7 +33,7 @@ public class RedisChatMemoryStore implements ChatMemoryStore {
     /**
      * 默认过期时间（30分钟）
      */
-    private static final Duration DEFAULT_TTL = Duration.ofMinutes(30);
+    public static final Duration DEFAULT_TTL = Duration.ofMinutes(30);
 
     /**
      * 获取指定记忆ID的聊天消息列表

@@ -4,6 +4,7 @@ import cn.hutool.json.JSONUtil;
 import com.weis.demo.agent.GoldMedalGuideAgent;
 import com.weis.demo.agent.VisualGuideAgent;
 import com.weis.demo.dto.AIMessageDTO;
+import com.weis.demo.dto.AIMessageKeyDTO;
 import com.weis.demo.dto.MemoryIdInfoDTO;
 import com.weis.demo.dto.constant.IntentType;
 import com.weis.demo.memory.MemoryIdCreator;
@@ -66,6 +67,8 @@ public class GoldMedalGuideAgentController {
             @RequestParam String memoryId
             ) throws IOException {
 
+        createMemoryIdInfo(memoryId); //聊天上下文
+
         ImageContent imageContent = null;
         if (imageFile != null && !imageFile.isEmpty()) {
             // 将上传的文件转换为 Base64 编码
@@ -87,7 +90,32 @@ public class GoldMedalGuideAgentController {
             result = goldMedalGuideAgent.answer(result, memoryId);
         }
 
+        AIMessageDTO aiMessageDTO = JSONUtil.toBean(result, AIMessageDTO.class);
+        buildAIMessageKeyDTO(aiMessageDTO); // 格式化成JSON对象
         return result;
+    }
+
+    private void buildAIMessageKeyDTO(AIMessageDTO aiMessageDTO){
+        String keyInfo = aiMessageDTO.getKeyInfo();
+        if (keyInfo != null && !keyInfo.isEmpty()) {
+            AIMessageKeyDTO keyDTO = JSONUtil.toBean(keyInfo, AIMessageKeyDTO.class);
+            aiMessageDTO.setKeyInfoDTO(keyDTO);
+            aiMessageDTO.setKeyInfo(null); // 清理重复信息
+        }
+    }
+
+    private void createMemoryIdInfo(String memoryId) {
+        MemoryIdInfoDTO memoryIdInfo = memoryIdCreator.parseMemoryId(memoryId);
+        if (memoryIdInfo == null){
+            memoryIdInfo = new MemoryIdInfoDTO();
+            memoryIdInfo.setMemberId(1L);
+            memoryIdInfo.setStoreId(1L);
+            memoryIdInfo.setMemoryId(memoryId);
+            memoryIdInfo.setShopId(1L);
+
+            memoryIdCreator.createMemoryId(memoryIdInfo);
+        }
+        log.warn("MemoryIdInfo: {}", memoryIdInfo);
     }
 
     private boolean oneMoreTime(String result){

@@ -33,12 +33,8 @@ public class ItemTools {
             完全信任item-search-tool返回的数据，即使返回了空列表后者看似无关的商品。
             如果返回了空列表，代表没有合适的商品。根据这一事实结合你的角色定位生成合理的回复。
             
-            **注意**：
-            仅当用户输入中明确包含或可清晰推断出以下全部两个关键属性时，才能使用item-search-tool：
-            1.目标用户性别：商品主要穿着者的性别。
-            2.穿着场合/场景：商品计划被使用的具体场合（如：上班、约会、婚礼、度假、日常通勤）。
-            处理逻辑：
-            如果以上任一属性缺失或模糊，智能体应优先判定为 other意图，并通过主动追问进行澄清，不得直接使用item-search-tool。
+            **注意**Tool使用规范：
+            只有当你判断当前用户的意图为item_search时，才允许使用item-search-tool工具。
             """)
     public List<ItemDTO> search(@P("""
             JSON格式的搜索参数，形如：
@@ -57,11 +53,11 @@ public class ItemTools {
             ItemSearchCmd cmd = JSONUtil.toBean(params, ItemSearchCmd.class);
 
             // 构建请求URL
-            String baseUrl = "https://weisapi.baozun.com/api/v2/item/search";
-            UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(baseUrl)
-                    .queryParam("pageNo", 1)
-                    .queryParam("pageSize", 3)
-                    .queryParam("keyword", cmd.getKeyWord());
+            String baseUrl = "https://weisapi.baozun.com/api/v2/item/search?keyword="+cmd.getKeyWord()+"&pageNo=1&pageSize=3";
+//            UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(baseUrl)
+//                    .queryParam("pageNo", 1)
+//                    .queryParam("pageSize", 3)
+//                    .queryParam("keyword", cmd.getKeyWord());
 
             // 设置请求头
             HttpHeaders headers = new HttpHeaders();
@@ -74,7 +70,8 @@ public class ItemTools {
 
             // 发送GET请求
             ResponseEntity<Map> response = restTemplate.exchange(
-                    uriBuilder.toUriString(),
+//                    uriBuilder.toUriString(),
+                    baseUrl,
                     HttpMethod.GET,
                     entity,
                     Map.class

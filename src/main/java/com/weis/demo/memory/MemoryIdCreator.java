@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
+import static com.weis.demo.memory.RedisChatMemoryStore.DEFAULT_TTL;
+
 /**
  * MemoryId 创建器
  * 用于生成符合特定格式的 MemoryId
@@ -62,7 +64,7 @@ public class MemoryIdCreator {
         String redisKey = MEMORY_ID_INFO_KEY_PREFIX + uuid;
         
         // 将MemoryIdInfoDTO存入Redis，过期时间为1天（24小时 = 86400秒）
-        redisTemplate.opsForValue().set(redisKey, memoryIdInfo, java.time.Duration.ofDays(1));
+        redisTemplate.opsForValue().set(redisKey, memoryIdInfo, DEFAULT_TTL);
         
         return uuid;
     }
@@ -84,9 +86,12 @@ public class MemoryIdCreator {
         
         // 从Redis中获取MemoryIdInfoDTO
         MemoryIdInfoDTO memoryIdInfo = (MemoryIdInfoDTO) redisTemplate.opsForValue().get(redisKey);
-        
+
         if (memoryIdInfo == null) {
             log.error("未找到对应的 MemoryId 信息，可能已过期或不存在: " + memoryId);
+        } else {
+            redisTemplate.expire(redisKey, DEFAULT_TTL);
+            log.debug("已刷新 MemoryId 过期时间: {}", memoryId);
         }
         return memoryIdInfo;
     }
