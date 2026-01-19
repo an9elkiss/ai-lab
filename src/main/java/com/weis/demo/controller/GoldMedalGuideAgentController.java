@@ -20,9 +20,9 @@ import dev.langchain4j.store.embedding.elasticsearch.ElasticsearchEmbeddingStore
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.client.RestClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,25 +38,29 @@ import static com.weis.demo.dto.constant.IntentType.DISCOVER_BRAND;
 @RestController
 @Tag(name = "金牌导购代理", description = "智能服装导购代理API，支持图像识别和穿搭建议")
 @RequestMapping("/agent/guide")
-@RequiredArgsConstructor
 public class GoldMedalGuideAgentController {
 
-    private final GoldMedalGuideAgent goldMedalGuideAgent;
+    @Autowired
+    private GoldMedalGuideAgent goldMedalGuideAgent;
 
-    private final VisualGuideAgent visualGuideAgent;
+    @Autowired
+    private VisualGuideAgent visualGuideAgent;
 
-    private final MemoryIdCreator memoryIdCreator;
+    @Autowired
+    private MemoryIdCreator memoryIdCreator;
 
-    private final RestClient restClient;
+    @Autowired
+    private RestClient restClient;
     
-    private final EmbeddingModel embeddingModel;
+    @Autowired
+    private EmbeddingModel embeddingModel;
 
     @Operation(
             summary = "智能服装导购对话",
             description = "与金牌导购代理进行对话，获取专业的穿搭建议和商品推荐。支持多模态输入（文本+图像）和会话记忆功能。"
     )
-    @PostMapping(value = "/consultation", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
-    public String consultation(
+    @PostMapping(value = "/consultation", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,  produces = {"application/json"})
+    public ResponseEntity<AIMessageDTO> consultation(
             @Parameter(description = "要分析的图片文件")
             @RequestParam(value = "image", required = false) MultipartFile imageFile,
 
@@ -92,7 +96,7 @@ public class GoldMedalGuideAgentController {
 
         AIMessageDTO aiMessageDTO = JSONUtil.toBean(result, AIMessageDTO.class);
         buildAIMessageKeyDTO(aiMessageDTO); // 格式化成JSON对象
-        return result;
+        return ResponseEntity.ok(aiMessageDTO);
     }
 
     private void buildAIMessageKeyDTO(AIMessageDTO aiMessageDTO){

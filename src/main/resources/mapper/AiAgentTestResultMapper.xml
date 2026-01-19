@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.weis.demo.mapper.AiAgentTestResultMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.weis.demo.entity.AiAgentTestResult">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="case_id" property="caseId" jdbcType="BIGINT"/>
+        <result column="actual_output" property="actualOutput" jdbcType="VARCHAR"/>
+        <result column="execution_time" property="executionTime" jdbcType="TIMESTAMP"/>
+        <result column="execution_duration" property="executionDuration" jdbcType="INTEGER"/>
+        <result column="execution_status" property="executionStatus" jdbcType="VARCHAR"/>
+        <result column="result_match_score" property="resultMatchScore" jdbcType="DECIMAL"/>
+        <result column="differences" property="differences" jdbcType="VARCHAR"/>
+        <result column="error_message" property="errorMessage" jdbcType="VARCHAR"/>
+        <result column="agent_version" property="agentVersion" jdbcType="VARCHAR"/>
+        <result column="model_version" property="modelVersion" jdbcType="VARCHAR"/>
+        <result column="test_environment" property="testEnvironment" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="last_modify_time" property="lastModifyTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 基础字段 -->
+    <sql id="Base_Column_List">
+        id, case_id, actual_output, execution_time, execution_duration,
+        execution_status, result_match_score, differences, error_message,
+        agent_version, model_version, test_environment,
+        create_time, last_modify_time
+    </sql>
+
+    <!-- 插入 -->
+    <insert id="insert" parameterType="com.weis.demo.entity.AiAgentTestResult" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_ai_agent_test_result (
+            case_id,
+            actual_output,
+            execution_time,
+            execution_duration,
+            execution_status,
+            result_match_score,
+            differences,
+            error_message,
+            agent_version,
+            model_version,
+            test_environment
+        ) VALUES (
+                     #{caseId},
+                     #{actualOutput},
+                     #{executionTime},
+                     #{executionDuration},
+                     #{executionStatus},
+                     #{resultMatchScore},
+                     #{differences},
+                     #{errorMessage},
+                     #{agentVersion},
+                     #{modelVersion},
+                     #{testEnvironment}
+                 )
+    </insert>
+
+    <!-- 根据ID删除 -->
+    <delete id="deleteById" parameterType="long">
+        DELETE FROM t_ai_agent_test_result
+        WHERE id = #{id}
+    </delete>
+
+    <!-- 根据用例ID删除 -->
+    <delete id="deleteByCaseId" parameterType="long">
+        DELETE FROM t_ai_agent_test_result
+        WHERE case_id = #{caseId}
+    </delete>
+
+    <!-- 更新 -->
+    <update id="update" parameterType="com.weis.demo.entity.AiAgentTestResult">
+        UPDATE t_ai_agent_test_result
+        <set>
+            <if test="caseId != null">
+                case_id = #{caseId},
+            </if>
+            <if test="actualOutput != null">
+                actual_output = #{actualOutput},
+            </if>
+            <if test="executionTime != null">
+                execution_time = #{executionTime},
+            </if>
+            <if test="executionDuration != null">
+                execution_duration = #{executionDuration},
+            </if>
+            <if test="executionStatus != null and executionStatus != ''">
+                execution_status = #{executionStatus},
+            </if>
+            <if test="resultMatchScore != null">
+                result_match_score = #{resultMatchScore},
+            </if>
+            <if test="differences != null">
+                differences = #{differences},
+            </if>
+            <if test="errorMessage != null">
+                error_message = #{errorMessage},
+            </if>
+            <if test="agentVersion != null">
+                agent_version = #{agentVersion},
+            </if>
+            <if test="modelVersion != null">
+                model_version = #{modelVersion},
+            </if>
+            <if test="testEnvironment != null">
+                test_environment = #{testEnvironment},
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID查询 -->
+    <select id="selectById" parameterType="long" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_ai_agent_test_result
+        WHERE id = #{id}
+    </select>
+
+    <!-- 查询所有 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_ai_agent_test_result
+        ORDER BY execution_time DESC
+    </select>
+
+    <!-- 根据用例ID查询 -->
+    <select id="selectByCaseId" parameterType="long" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_ai_agent_test_result
+        WHERE case_id = #{caseId}
+        ORDER BY execution_time DESC
+    </select>
+
+    <!-- 根据执行状态查询 -->
+    <select id="selectByExecutionStatus" parameterType="string" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_ai_agent_test_result
+        WHERE execution_status = #{executionStatus}
+        ORDER BY execution_time DESC
+    </select>
+
+    <!-- 根据测试环境查询 -->
+    <select id="selectByTestEnvironment" parameterType="string" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_ai_agent_test_result
+        WHERE test_environment = #{testEnvironment}
+        ORDER BY execution_time DESC
+    </select>
+
+    <!-- 根据智能体版本查询 -->
+    <select id="selectByAgentVersion" parameterType="string" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_ai_agent_test_result
+        WHERE agent_version = #{agentVersion}
+        ORDER BY execution_time DESC
+    </select>
+
+    <!-- 根据模型版本查询 -->
+    <select id="selectByModelVersion" parameterType="string" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_ai_agent_test_result
+        WHERE model_version = #{modelVersion}
+        ORDER BY execution_time DESC
+    </select>
+
+    <!-- 查询用例最新的测试结果 -->
+    <select id="selectLatestByCaseId" parameterType="long" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM t_ai_agent_test_result
+        WHERE case_id = #{caseId}
+        ORDER BY execution_time DESC
+        LIMIT 1
+    </select>
+
+</mapper>
