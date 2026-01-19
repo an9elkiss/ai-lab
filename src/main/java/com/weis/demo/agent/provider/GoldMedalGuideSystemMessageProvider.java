@@ -63,7 +63,7 @@ public class GoldMedalGuideSystemMessageProvider implements Function<Object, Str
           
           6. 输出格式规范：
           **你的输出必须是且仅是一个合法的JSON对象**
-          JSON对象第一层只包含以下四个字段：
+          JSON对象第一层只包含以下7个字段：
           6.1  userInput: (字符串) 记录用户本轮对话的原始输入。
           6.2  emotion: (字符串) 分析用户的情绪状态，候选值为 positive、neutral、negative、hesitant
           6.3  intentType: (字符串) 判断用户的核心意图。意图仅限于以下类型：
@@ -77,41 +77,25 @@ public class GoldMedalGuideSystemMessageProvider implements Function<Object, Str
               用户消息中必须包含“回答时基于以下事实:”这样的标记，才能判定为 retrieval_augmented_generation意图。
           
           6.4  keyInfo: (对象) 根据intent_type填充对应的关键处理信息，结构如下：
-              ◦   greeting意图:
-                  {
-                    "subsequentFlow": "END",
-                    "reply": "你生成的友好问候及引导语",
-                    "redefinedReplies": ["预制回答一","预制回答二","预制回答三"]
-                  }
+              ◦   greeting意图: 空对象
           
-              ◦   other意图:
-                  {
-                    "subsequentFlow": "END",
-                    "reply": "根据你的角色定位生成合理的回复",
-                    "redefinedReplies": ["预制回答一","预制回答二","预制回答三"]
-                  }
+              ◦   other意图: 空对象
           
-              ◦   retrieval_augmented_generation意图:
-                  {
-                    "subsequentFlow": "END",
-                    "reply": "根据你的角色定位生成合理的回复",
-                    "redefinedReplies": ["预制回答一","预制回答二","预制回答三"]
-                  }
+              ◦   retrieval_augmented_generation意图: 空对象
           
               ◦   discover_brand意图:
                   {
-                    "subsequentFlow": "RAG",
-                    "knowledgeBase": "brand_corpus", // 固定值
                     "embeddingQuery": "你提炼的、用于检索品牌知识的核心查询语句"
                   }
           
               ◦   item_search意图:
                   {
-                    "subsequentFlow": "END",
-                    "reply": "根据你的角色定位生成合理的回复",
-                    "redefinedReplies": ["预制回答一","预制回答二","预制回答三"]
                     "searchResult": [商品1,商品2]
                   }
+          
+          6.5  subsequentFlow: (后续流程) 当意图为discover_brand时，后续流程取值"RAG"，否则取值"END"。
+          6.6  reply: (你的回复) 根据你的角色定位生成合理的回复。
+          6.7  redefinedReplies: (预制问题) 以数组形式提供，形如["预制回答一","预制回答二","预制回答三"]。
           
           对话示例：
           • 用户说：“你好！”
@@ -120,11 +104,10 @@ public class GoldMedalGuideSystemMessageProvider implements Function<Object, Str
                 "userInput": "你好！",
                 "emotion": "positive",
                 "intentType": "greeting",
-                "keyInfo": {
-                  "subsequentFlow": "END",
-                  "reply": "您好！我是您的专属时尚顾问“灵动顾问”。很高兴为您服务。今天想看看什么风格的衣物呢？",
-                  "redefinedReplies": ["我想看看日常休闲款","需要正式场合的穿搭","想了解最近的流行趋势"]
-                }
+                "keyInfo": {},
+                "subsequentFlow": "END",
+                "reply": "您好！我是您的专属时尚顾问“灵动顾问”。很高兴为您服务。今天想看看什么风格的衣物呢？",
+                "redefinedReplies": ["我想看看日常休闲款","需要正式场合的穿搭","想了解最近的流行趋势"]
               }
           
           7. """ + memberProfileInfo;

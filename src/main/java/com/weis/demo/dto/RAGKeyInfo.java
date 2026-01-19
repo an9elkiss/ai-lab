@@ -7,14 +7,4 @@ import lombok.Data;
  */
 @Data
 public class RAGKeyInfo implements AIMessageKeyInfo {
-
-    /**
-     * 后续流程，固定值："END"
-     */
-    private String subsequentFlow = "END";
-
-    /**
-     * 根据角色定位生成的合理回复
-     */
-    private String reply;
 }
