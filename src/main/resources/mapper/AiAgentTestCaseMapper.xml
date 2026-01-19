@@ -16,6 +16,8 @@
         <result column="user_input_image_url" property="userInputImageUrl" jdbcType="VARCHAR"/>
         <result column="session_context" property="sessionContext" jdbcType="VARCHAR"/>
         <result column="handler" property="handler" jdbcType="VARCHAR"/>
+        <result column="expected_intent_type" property="expectedIntentType" jdbcType="VARCHAR"/>
+        <result column="expected_subsequent_flow" property="expectedSubsequentFlow" jdbcType="VARCHAR"/>
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
         <result column="last_modify_time" property="lastModifyTime" jdbcType="TIMESTAMP"/>
     </resultMap>
@@ -24,6 +26,7 @@
     <sql id="Base_Column_List">
         id, case_name, description, case_type, priority, status,
         user_input_text, user_input_image_url, session_context, handler,
+        expected_intent_type, expected_subsequent_flow,
         create_time, last_modify_time
     </sql>
 
@@ -38,7 +41,9 @@
             user_input_text,
             user_input_image_url,
             session_context,
-            handler
+            handler,
+            expected_intent_type,
+            expected_subsequent_flow
         ) VALUES (
             #{caseName},
             #{description},
@@ -48,7 +53,9 @@
             #{userInputText},
             #{userInputImageUrl},
             #{sessionContext},
-            #{handler}
+            #{handler},
+            #{expectedIntentType},
+            #{expectedSubsequentFlow}
         )
     </insert>
 
@@ -88,6 +95,12 @@
             </if>
             <if test="handler != null">
                 handler = #{handler},
+            </if>
+            <if test="expectedIntentType != null">
+                expected_intent_type = #{expectedIntentType},
+            </if>
+            <if test="expectedSubsequentFlow != null">
+                expected_subsequent_flow = #{expectedSubsequentFlow},
             </if>
         </set>
         WHERE id = #{id}

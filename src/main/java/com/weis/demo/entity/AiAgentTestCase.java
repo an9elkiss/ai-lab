@@ -64,6 +64,16 @@ public class AiAgentTestCase {
     private String handler;
 
     /**
+     * 预期意图类型
+     */
+    private String expectedIntentType;
+
+    /**
+     * 预期后续流程
+     */
+    private String expectedSubsequentFlow;
+
+    /**
      * 创建时间
      */
     private Date createTime;

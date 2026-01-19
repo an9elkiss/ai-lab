@@ -1,5 +1,7 @@
 package com.weis.demo.service.test;
 
+import cn.hutool.json.JSONUtil;
+import com.weis.demo.dto.AIMessageDTO;
 import com.weis.demo.dto.AiAgentTestResultDTO;
 import com.weis.demo.entity.AiAgentTestCase;
 import lombok.extern.slf4j.Slf4j;
@@ -80,5 +82,28 @@ public class GoldMedalGuideAgentControllerTestService implements AgentTestHandle
 
         testResult.setActualOutput(result);
 
+        AIMessageDTO aiMessageDTO = JSONUtil.toBean(result, AIMessageDTO.class);
+        String actualIntentType = aiMessageDTO.getIntentType();
+        String actualSubsequentFlow = aiMessageDTO.getSubsequentFlow();
+
+        // 与测试用例中的预期值进行断言
+        String expectedIntentType = testCase.getExpectedIntentType();
+        String expectedSubsequentFlow = testCase.getExpectedSubsequentFlow();
+
+        // 断言意图类型
+        if (expectedIntentType != null && !expectedIntentType.equals(actualIntentType)) {
+            String errorMsg = String.format("意图类型断言失败: 期望值=%s, 实际值=%s", expectedIntentType, actualIntentType);
+            log.error(errorMsg);
+            throw new AssertionError(errorMsg);
+        }
+
+        // 断言后续流程
+        if (expectedSubsequentFlow != null && !expectedSubsequentFlow.equals(actualSubsequentFlow)) {
+            String errorMsg = String.format("后续流程断言失败: 期望值=%s, 实际值=%s", expectedSubsequentFlow, actualSubsequentFlow);
+            log.error(errorMsg);
+            throw new AssertionError(errorMsg);
+        }
+
+        log.warn("断言通过: intentType={}, subsequentFlow={}", actualIntentType, actualSubsequentFlow);
     }
 }
