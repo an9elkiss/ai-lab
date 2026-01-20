@@ -94,14 +94,14 @@ public class GoldMedalGuideAgentControllerTestService implements AgentTestHandle
         if (expectedIntentType != null && !expectedIntentType.equals(actualIntentType)) {
             String errorMsg = String.format("意图类型断言失败: 期望值=%s, 实际值=%s", expectedIntentType, actualIntentType);
             log.error(errorMsg);
-            throw new AssertionError(errorMsg);
+            throw new RuntimeException(errorMsg);
         }
 
         // 断言后续流程
         if (expectedSubsequentFlow != null && !expectedSubsequentFlow.equals(actualSubsequentFlow)) {
             String errorMsg = String.format("后续流程断言失败: 期望值=%s, 实际值=%s", expectedSubsequentFlow, actualSubsequentFlow);
             log.error(errorMsg);
-            throw new AssertionError(errorMsg);
+            throw new RuntimeException(errorMsg);
         }
 
         log.warn("断言通过: intentType={}, subsequentFlow={}", actualIntentType, actualSubsequentFlow);
