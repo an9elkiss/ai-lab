@@ -53,6 +53,7 @@ public class ModelConfig {
                 .temperature(temperature)
                 .listeners(List.of(chatModelListener))
                 .httpClientBuilder(httpClientBuilderFactory.create())
+                .strictJsonSchema(true)
                 .build();
     }
 }

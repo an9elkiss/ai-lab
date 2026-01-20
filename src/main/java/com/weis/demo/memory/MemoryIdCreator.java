@@ -88,7 +88,7 @@ public class MemoryIdCreator {
         MemoryIdInfoDTO memoryIdInfo = (MemoryIdInfoDTO) redisTemplate.opsForValue().get(redisKey);
 
         if (memoryIdInfo == null) {
-            log.error("未找到对应的 MemoryId 信息，可能已过期或不存在: " + memoryId);
+            log.warn("未找到对应的 MemoryId 信息，可能已过期或不存在: " + memoryId);
         } else {
             redisTemplate.expire(redisKey, DEFAULT_TTL);
             log.debug("已刷新 MemoryId 过期时间: {}", memoryId);
