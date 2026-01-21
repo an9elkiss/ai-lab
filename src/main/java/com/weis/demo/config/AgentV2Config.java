@@ -4,6 +4,7 @@ import com.weis.demo.agent.provider.SubMemoryIdSystemMessageProvider;
 import com.weis.demo.agent.v2.*;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.community.model.dashscope.QwenChatModel;
+import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.rag.RetrievalAugmentor;
@@ -15,35 +16,48 @@ import org.springframework.context.annotation.Configuration;
 public class AgentV2Config {
 
     @Bean
-    public IntentAgent intentAgent(ChatModel chatModel, SubMemoryIdSystemMessageProvider systemMessageProvider) {
+    public IntentAgent intentAgent(ChatModel chatModel,
+                                   SubMemoryIdSystemMessageProvider systemMessageProvider,
+                                   ChatMemoryProvider subMemoryIdChatMemoryProvider) {
         return AgenticServices.agentBuilder(IntentAgent.class)
                 .chatModel(chatModel)
                 .systemMessageProvider(systemMessageProvider)
+                .chatMemoryProvider(subMemoryIdChatMemoryProvider)
                 .build();
     }
 
     @Bean
-    public ImageIntentAgent imageIntentAgent(QwenChatModel chatModel, SubMemoryIdSystemMessageProvider systemMessageProvider) {
+    public ImageIntentAgent imageIntentAgent(QwenChatModel chatModel,
+                                             SubMemoryIdSystemMessageProvider systemMessageProvider,
+                                             ChatMemoryProvider subMemoryIdChatMemoryProvider) {
         return AgenticServices.agentBuilder(ImageIntentAgent.class)
                 .chatModel(chatModel)
                 .systemMessageProvider(systemMessageProvider)
+                .chatMemoryProvider(subMemoryIdChatMemoryProvider)
                 .build();
     }
 
     @Bean
-    public GuideAgent guideAgent(ChatModel chatModel, SubMemoryIdSystemMessageProvider systemMessageProvider) {
+    public GuideAgent guideAgent(ChatModel chatModel,
+                                 SubMemoryIdSystemMessageProvider systemMessageProvider,
+                                 ChatMemoryProvider subMemoryIdChatMemoryProvider) {
         return AgenticServices.agentBuilder(GuideAgent.class)
                 .chatModel(chatModel)
                 .systemMessageProvider(systemMessageProvider)
+                .chatMemoryProvider(subMemoryIdChatMemoryProvider)
                 .build();
     }
 
     @Bean
-    public RAGGuideAgent ragGuideAgent(ChatModel chatModel, RetrievalAugmentor retrievalAugmentorV2, SubMemoryIdSystemMessageProvider systemMessageProvider) {
+    public RAGGuideAgent ragGuideAgent(ChatModel chatModel,
+                                       RetrievalAugmentor retrievalAugmentorV2,
+                                       SubMemoryIdSystemMessageProvider systemMessageProvider,
+                                       ChatMemoryProvider subMemoryIdChatMemoryProvider) {
         return AgenticServices.agentBuilder(RAGGuideAgent.class)
                 .chatModel(chatModel)
                 .retrievalAugmentor(retrievalAugmentorV2)
                 .systemMessageProvider(systemMessageProvider)
+                .chatMemoryProvider(subMemoryIdChatMemoryProvider)
                 .build();
     }
 

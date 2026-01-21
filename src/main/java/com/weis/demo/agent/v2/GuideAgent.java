@@ -3,6 +3,7 @@ package com.weis.demo.agent.v2;
 import com.weis.demo.agent.typedkey.GuideResp;
 import com.weis.demo.dto.v2.GuideRespDTO;
 import dev.langchain4j.agentic.Agent;
+import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.UserMessage;
 
 public interface GuideAgent {
@@ -48,5 +49,5 @@ public interface GuideAgent {
           """;
 
     @Agent(description = "导购智能体", typedOutputKey  = GuideResp.class)
-    GuideRespDTO answer(@UserMessage String consultation);
+    GuideRespDTO answer(@UserMessage String consultation, @MemoryId String memoryId);
 }

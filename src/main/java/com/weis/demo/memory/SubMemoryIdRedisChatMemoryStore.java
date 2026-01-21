@@ -21,12 +21,7 @@ public class SubMemoryIdRedisChatMemoryStore extends RedisChatMemoryStore {
 
     @Override
     public List<ChatMessage> getMessages(Object memoryId) {
-        String[] parts = memoryId.toString().split("-");
-        if (parts.length != 2) {
-            log.error("memoryId格式错误, memoryId: {}", memoryId);
-            throw new IllegalArgumentException("memoryId格式错误，应为: baseId-code");
-        }
-        String baseId = parts[0];
+        String baseId = getBaseMemoryId(memoryId);
 
         List<ChatMessage> messages = super.getMessages(baseId);
         if (messages == null || messages.isEmpty()) {return messages;}
@@ -34,9 +29,9 @@ public class SubMemoryIdRedisChatMemoryStore extends RedisChatMemoryStore {
         String systemMessage = subMemoryIdSystemMessageProvider.apply(memoryId);
 
         // 断言messages[0]是SystemMessage
-        if (!(messages.get(0) instanceof SystemMessage)) {
+        if (!(messages.getFirst() instanceof SystemMessage)) {
             log.error("messages[0]不是SystemMessage, memoryId: {}, messageType: {}", 
-                    memoryId, messages.get(0).getClass().getSimpleName());
+                    memoryId, messages.getFirst().getClass().getSimpleName());
             throw new IllegalStateException("messages[0]必须是SystemMessage");
         }
 
@@ -47,8 +42,25 @@ public class SubMemoryIdRedisChatMemoryStore extends RedisChatMemoryStore {
         return result;
     }
 
+    private String getBaseMemoryId(Object memoryId) {
+        String[] parts = memoryId.toString().split("-");
+        if (parts.length != 2) {
+            log.error("memoryId格式错误, memoryId: {}", memoryId);
+            throw new IllegalArgumentException("memoryId格式错误，应为: baseId-code");
+        }
+        String baseId = parts[0];
+        return baseId;
+    }
+
     @Override
     public void updateMessages(Object memoryId, List<ChatMessage> messages) {
-        super.updateMessages(memoryId, messages);
+        String baseId = getBaseMemoryId(memoryId);
+        super.updateMessages(baseId, messages);
+    }
+
+    @Override
+    public void deleteMessages(Object memoryId) {
+        String baseId = getBaseMemoryId(memoryId);
+        super.deleteMessages(baseId);
     }
 }

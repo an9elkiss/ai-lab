@@ -3,7 +3,7 @@ package com.weis.demo.agent.v2;
 import com.weis.demo.agent.typedkey.Intent;
 import com.weis.demo.dto.v2.IntentDTO;
 import dev.langchain4j.agentic.Agent;
-import dev.langchain4j.service.SystemMessage;
+import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 
@@ -53,7 +53,7 @@ public interface IntentAgent {
             }
             """;
     @Agent(description = "用户意图识别", typedOutputKey  = Intent.class)
-    IntentDTO analyze(@UserMessage @V("consultation") String consultation);
+    IntentDTO analyze(@UserMessage @V("consultation") String consultation, @MemoryId String memoryId);
 }
 
 

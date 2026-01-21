@@ -1,11 +1,11 @@
 package com.weis.demo.config;
 
 import com.weis.demo.memory.RedisChatMemoryStore;
+import com.weis.demo.memory.SubMemoryIdRedisChatMemoryStore;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.TokenWindowChatMemory;
 import dev.langchain4j.model.TokenCountEstimator;
 import dev.langchain4j.model.openai.OpenAiTokenCountEstimator;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,10 +17,8 @@ import org.springframework.context.annotation.Configuration;
  * @since 2026-01-12
  */
 @Configuration
-@RequiredArgsConstructor
 public class ChatMemoryConfig {
 
-    private final RedisChatMemoryStore redisChatMemoryStore;
 
     @Bean
     TokenCountEstimator tokenCountEstimator() {
@@ -36,7 +34,16 @@ public class ChatMemoryConfig {
      * @return ChatMemoryProvider实例
      */
     @Bean
-    ChatMemoryProvider chatMemoryProvider(TokenCountEstimator tokenizer) {
+    ChatMemoryProvider chatMemoryProvider(TokenCountEstimator tokenizer, RedisChatMemoryStore redisChatMemoryStore) {
+        return memoryId -> TokenWindowChatMemory.builder()
+                .chatMemoryStore(redisChatMemoryStore)
+                .id(memoryId)
+                .maxTokens(5000, tokenizer)
+                .build();
+    }
+
+    @Bean
+    ChatMemoryProvider subMemoryIdChatMemoryProvider(TokenCountEstimator tokenizer, SubMemoryIdRedisChatMemoryStore redisChatMemoryStore) {
         return memoryId -> TokenWindowChatMemory.builder()
                 .chatMemoryStore(redisChatMemoryStore)
                 .id(memoryId)

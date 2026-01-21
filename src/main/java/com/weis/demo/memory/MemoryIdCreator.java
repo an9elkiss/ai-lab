@@ -41,32 +41,31 @@ public class MemoryIdCreator {
         if (memoryIdInfo == null) {
             throw new IllegalArgumentException("MemoryIdInfo 不能为空");
         }
-        
+
         if (memoryIdInfo.getMemoryType() != MEMBER_CONVERSATION_TYPE) {
             throw new IllegalArgumentException("不支持的 MemoryId 类型: " + memoryIdInfo.getMemoryType());
         }
-        
+
         // 参数验证
+        if (memoryIdInfo.getMemoryId() == null) {
+            throw new IllegalArgumentException("MemoryId 不能为空");
+        }
         if (memoryIdInfo.getStoreId() == null) {
             throw new IllegalArgumentException("StoreId 不能为空");
-        }
-        if (memoryIdInfo.getShopId() == null) {
-            throw new IllegalArgumentException("ShopId 不能为空");
         }
         if (memoryIdInfo.getMemberId() == null) {
             throw new IllegalArgumentException("MemberId 不能为空");
         }
+        if (!memoryIdInfo.getMemoryId().matches("[0-9a-f]{32}")) {
+            throw new IllegalArgumentException("MemoryId 必须是UUID格式");
+        }
 
-        // 生成UUID（去除横杠）
-        String uuid = UUID.randomUUID().toString().replace("-", "");
-        
         // 构建Redis key
-        String redisKey = MEMORY_ID_INFO_KEY_PREFIX + uuid;
-        
-        // 将MemoryIdInfoDTO存入Redis，过期时间为1天（24小时 = 86400秒）
+        String redisKey = MEMORY_ID_INFO_KEY_PREFIX + memoryIdInfo.getMemoryId();
+
         redisTemplate.opsForValue().set(redisKey, memoryIdInfo, DEFAULT_TTL);
-        
-        return uuid;
+
+        return memoryIdInfo.getMemoryId();
     }
     
     /**

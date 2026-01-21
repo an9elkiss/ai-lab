@@ -5,6 +5,7 @@ import cn.hutool.json.JSONUtil;
 import com.weis.demo.agent.v2.*;
 import com.weis.demo.dto.ItemDTO;
 import com.weis.demo.dto.MemoryIdInfoDTO;
+import com.weis.demo.dto.constant.AgentSystemMessage;
 import com.weis.demo.dto.v2.GuideRespDTO;
 import com.weis.demo.dto.v2.GuideRespExtDTO;
 import com.weis.demo.dto.v2.IntentDTO;
@@ -30,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.weis.demo.dto.constant.AgentSystemMessage.*;
 import static com.weis.demo.dto.constant.IntentTypeV2.*;
 import static com.weis.demo.rag.v2.IntentContentInjector.INTENT_TEMPLATE;
 import static org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE;
@@ -102,9 +104,10 @@ public class GoldMedalGuideV2Controller {
 
         IntentDTO intentDTO = null;
         if (imageContent != null) {
-            intentDTO = imageIntentAgent.analyze(consultation, imageContent);
+            intentDTO = imageIntentAgent.analyze(consultation, imageContent,
+                    getSubMemoryId(memoryId, IMAGE_INTENT_AGENT_SYSTEM_MESSAGE));
         } else {
-            intentDTO = intentAgent.analyze(consultation);
+            intentDTO = intentAgent.analyze(consultation, getSubMemoryId(memoryId, INTENT_AGENT_SYSTEM_MESSAGE));
         }
         log.warn("IntentDTO: {}", JSONUtil.toJsonStr(intentDTO));
         String imageContentStr = intentDTO.getImageContent();
@@ -117,7 +120,7 @@ public class GoldMedalGuideV2Controller {
             String userInput = INTENT_TEMPLATE.apply(variables).text();
             log.warn("UserInput: {}", userInput);
 
-            GuideRespDTO answer = guideAgent.answer(userInput);
+            GuideRespDTO answer = guideAgent.answer(userInput, getSubMemoryId(memoryId, GUIDE_AGENT_SYSTEM_MESSAGE));
             return ResponseEntity.ok(answer);
         } if (DISCOVER_BRAND.equals(intentDTO.getIntentType())) {
             IntentRagDTO intentRagDTO = new IntentRagDTO();
@@ -125,7 +128,7 @@ public class GoldMedalGuideV2Controller {
             intentRagDTO.setUserInput(consultation);
             intentRagDTO.setImageContent(imageContentStr);
 
-            GuideRespDTO answer = ragGuideAgent.answer(JSONUtil.toJsonStr(intentRagDTO));
+            GuideRespDTO answer = ragGuideAgent.answer(JSONUtil.toJsonStr(intentRagDTO), getSubMemoryId(memoryId, RAG_GUIDE_AGENT_SYSTEM_MESSAGE));
             return ResponseEntity.ok(answer);
         } if (ITEM_SEARCH.equals(intentDTO.getIntentType())) {
             String keyWords = intentDTO.getItemQueryKeyWords();
@@ -140,7 +143,7 @@ public class GoldMedalGuideV2Controller {
             String userInput = ITEM_SEARCH_INTENT_TEMPLATE.apply(variables).text();
             log.warn("UserInput: {}", userInput);
 
-            GuideRespDTO answer = guideAgent.answer(userInput);
+            GuideRespDTO answer = guideAgent.answer(userInput, getSubMemoryId(memoryId, GUIDE_AGENT_SYSTEM_MESSAGE));
 
             GuideRespExtDTO answerExt = new GuideRespExtDTO();
             answerExt.setItems(itemDTOS);
@@ -150,6 +153,10 @@ public class GoldMedalGuideV2Controller {
         } else {
             throw new RuntimeException("Invalid intent type: " + intentDTO.getIntentType());
         }
+    }
+
+    private String getSubMemoryId(String memoryId, AgentSystemMessage agentSystemMessage) {
+        return memoryId + "-" + agentSystemMessage.getCode();
     }
 
     private void createMemoryIdInfo(String memoryId) {
