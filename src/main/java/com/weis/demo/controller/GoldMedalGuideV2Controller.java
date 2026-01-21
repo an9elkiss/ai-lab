@@ -2,10 +2,7 @@ package com.weis.demo.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONUtil;
-import com.weis.demo.agent.v2.GuideAgent;
-import com.weis.demo.agent.v2.ImageIntentAgent;
-import com.weis.demo.agent.v2.IntentAgent;
-import com.weis.demo.agent.v2.RAGGuideAgent;
+import com.weis.demo.agent.v2.*;
 import com.weis.demo.dto.ItemDTO;
 import com.weis.demo.dto.MemoryIdInfoDTO;
 import com.weis.demo.dto.v2.GuideRespDTO;
@@ -25,6 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Flux;
 
 import java.io.IOException;
 import java.util.Base64;
@@ -34,6 +32,7 @@ import java.util.Map;
 
 import static com.weis.demo.dto.constant.IntentTypeV2.*;
 import static com.weis.demo.rag.v2.IntentContentInjector.INTENT_TEMPLATE;
+import static org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE;
 
 @Slf4j
 @RestController
@@ -55,6 +54,9 @@ public class GoldMedalGuideV2Controller {
 
     @Autowired
     private RAGGuideAgent ragGuideAgent;
+
+    @Autowired
+    private GuideFluxAgent guideFluxAgent;
 
     @Autowired
     private ItemService itemService;
@@ -162,6 +164,24 @@ public class GoldMedalGuideV2Controller {
             memoryIdCreator.createMemoryId(memoryIdInfo);
         }
         log.warn("MemoryIdInfo: {}", memoryIdInfo);
+    }
+
+    @Operation(
+            summary = "流式输出演示",
+            description = "流式输出"
+    )
+    @PostMapping(value = "/flux", produces = TEXT_EVENT_STREAM_VALUE)
+    public Flux<String> flux(
+            @Parameter(description = "咨询内容", example = "你好")
+            @RequestParam String consultation){
+
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("userMessage", consultation);
+        variables.put("imageContent", "");
+        String userInput = INTENT_TEMPLATE.apply(variables).text();
+        log.warn("UserInput: {}", userInput);
+
+        return guideFluxAgent.answer(userInput);
     }
 
 }

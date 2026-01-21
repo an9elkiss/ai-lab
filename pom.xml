@@ -140,6 +140,12 @@
             <version>1.9.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-reactor</artifactId>
+            <version>1.9.1-beta17</version>
+        </dependency>
+
         <!-- 阿里千问大模型 DashScope -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
