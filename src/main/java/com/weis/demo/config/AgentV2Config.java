@@ -32,8 +32,10 @@ public class AgentV2Config {
                                              ChatMemoryProvider subMemoryIdChatMemoryProvider) {
         return AgenticServices.agentBuilder(ImageIntentAgent.class)
                 .chatModel(chatModel)
-                .systemMessageProvider(systemMessageProvider)
-                .chatMemoryProvider(subMemoryIdChatMemoryProvider)
+                // 没有记忆拿不到SystemMessage，所以写死
+//                .systemMessageProvider(systemMessageProvider)
+                // OpenAiTokenCountEstimator 不支持 ImageContent，所以无法添加记忆
+//                .chatMemoryProvider(subMemoryIdChatMemoryProvider)
                 .build();
     }
 

@@ -67,9 +67,10 @@ public interface ImageIntentAgent {
               "imageContent": "如果用户提供了图片，在此进行描述"
             }
             """;
-
+    @SystemMessage(SYSTEM_MESSAGE)
     @Agent(description = "图片分析专家", typedOutputKey  = Intent.class)
     IntentDTO analyze(@UserMessage @V("consultation") String consultation,
-                      @UserMessage @K(Image.class) ImageContent image,
-                      @MemoryId String memoryId);
+                      @UserMessage @K(Image.class) ImageContent image);
+    // OpenAiTokenCountEstimator 不支持 ImageContent，所以无法添加记忆
+//                      @MemoryId String memoryId);
 }

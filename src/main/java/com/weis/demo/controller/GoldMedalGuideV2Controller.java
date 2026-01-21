@@ -87,7 +87,7 @@ public class GoldMedalGuideV2Controller {
             @Parameter(description = "咨询内容", example = "帮我找找有没有类似这种风格的裙子？下个月要去参加草坪婚礼，但希望平时在办公室穿也不夸张。")
             @RequestParam String consultation,
 
-            @Parameter(description = "智能体记忆ID", example = "aaa")
+            @Parameter(description = "智能体记忆ID", example = "9a1b2c3d4e5f67890abcdef123456789")
             @RequestParam String memoryId
             ) throws IOException {
 
@@ -104,8 +104,9 @@ public class GoldMedalGuideV2Controller {
 
         IntentDTO intentDTO = null;
         if (imageContent != null) {
-            intentDTO = imageIntentAgent.analyze(consultation, imageContent,
-                    getSubMemoryId(memoryId, IMAGE_INTENT_AGENT_SYSTEM_MESSAGE));
+            intentDTO = imageIntentAgent.analyze(consultation, imageContent);
+            // OpenAiTokenCountEstimator 不支持 ImageContent，所以无法添加记忆
+//                    getSubMemoryId(memoryId, IMAGE_INTENT_AGENT_SYSTEM_MESSAGE));
         } else {
             intentDTO = intentAgent.analyze(consultation, getSubMemoryId(memoryId, INTENT_AGENT_SYSTEM_MESSAGE));
         }
