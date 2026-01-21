@@ -3,6 +3,7 @@ package com.weis.demo.controller;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.json.JSONUtil;
 import com.weis.demo.agent.v2.GuideAgent;
+import com.weis.demo.agent.v2.ImageIntentAgent;
 import com.weis.demo.agent.v2.IntentAgent;
 import com.weis.demo.agent.v2.RAGGuideAgent;
 import com.weis.demo.dto.ItemDTO;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.weis.demo.dto.constant.IntentTypeV2.*;
+import static com.weis.demo.rag.v2.IntentContentInjector.INTENT_TEMPLATE;
 
 @Slf4j
 @RestController
@@ -46,6 +48,9 @@ public class GoldMedalGuideV2Controller {
     private IntentAgent intentAgent;
 
     @Autowired
+    private ImageIntentAgent imageIntentAgent;
+
+    @Autowired
     private GuideAgent guideAgent;
 
     @Autowired
@@ -57,9 +62,12 @@ public class GoldMedalGuideV2Controller {
     public static final PromptTemplate ITEM_SEARCH_INTENT_TEMPLATE = PromptTemplate.from(
             """
                     {{userMessage}}
+                    <image_content>
+                    {{imageContent}}
+                    </image_content>
 
                     <items>
-                    {{contents}}
+                    {{items}}
                     </items>
                     """);
 
@@ -90,27 +98,42 @@ public class GoldMedalGuideV2Controller {
             imageContent = ImageContent.from(base64Image, mimeType);
         }
 
-        IntentDTO intentDTO = intentAgent.analyze(consultation);
+        IntentDTO intentDTO = null;
+        if (imageContent != null) {
+            intentDTO = imageIntentAgent.analyze(consultation, imageContent);
+        } else {
+            intentDTO = intentAgent.analyze(consultation);
+        }
         log.warn("IntentDTO: {}", JSONUtil.toJsonStr(intentDTO));
+        String imageContentStr = intentDTO.getImageContent();
+        imageContentStr = imageContentStr != null ? imageContentStr : "";
 
         if (GREETING.equals(intentDTO.getIntentType()) || OTHER.equals(intentDTO.getIntentType())) {
-            GuideRespDTO answer = guideAgent.answer(consultation);
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("userMessage", consultation);
+            variables.put("imageContent", imageContentStr);
+            String userInput = INTENT_TEMPLATE.apply(variables).text();
+            log.warn("UserInput: {}", userInput);
+
+            GuideRespDTO answer = guideAgent.answer(userInput);
             return ResponseEntity.ok(answer);
         } if (DISCOVER_BRAND.equals(intentDTO.getIntentType())) {
             IntentRagDTO intentRagDTO = new IntentRagDTO();
             intentRagDTO.setEmbeddingQuery(intentDTO.getEmbeddingQuery());
             intentRagDTO.setUserInput(consultation);
+            intentRagDTO.setImageContent(imageContentStr);
 
             GuideRespDTO answer = ragGuideAgent.answer(JSONUtil.toJsonStr(intentRagDTO));
             return ResponseEntity.ok(answer);
         } if (ITEM_SEARCH.equals(intentDTO.getIntentType())) {
             String keyWords = intentDTO.getItemQueryKeyWords();
-            keyWords = "cyme 包".equals(keyWords) ? "cyme" : keyWords; // 测试代码
+            keyWords = "红色"; // 测试代码
             List<ItemDTO> itemDTOS = itemService.search(keyWords);
 
             Map<String, Object> variables = new HashMap<>();
             variables.put("userMessage", consultation);
-            variables.put("contents", itemDTOS != null && !itemDTOS.isEmpty() ? JSONUtil.toJsonStr(itemDTOS) : "");
+            variables.put("imageContent", imageContentStr);
+            variables.put("items", itemDTOS != null && !itemDTOS.isEmpty() ? JSONUtil.toJsonStr(itemDTOS) : "");
 
             String userInput = ITEM_SEARCH_INTENT_TEMPLATE.apply(variables).text();
             log.warn("UserInput: {}", userInput);

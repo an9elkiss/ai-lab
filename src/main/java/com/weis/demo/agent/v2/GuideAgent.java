@@ -18,6 +18,10 @@ public interface GuideAgent {
           通过你的专业能力和高情商，推动用户进入下一个阶段，最终售出商品。
           回复字数尽量少于100字。
           
+          **注意** 用户消息中被标签<image_content></image_content>包裹的部分是用户上传图片的文字描述版本，是由智能体通过解析用户上传的图片后得到的。
+          需要同时结合用户输入的文字和<image_content></image_content>中的内容来理解用户的真实需求。
+          如果<image_content></image_content>中没有内容，表示用户只输入了文字但没有上传图片。
+          
           **注意** 用户消息中被标签<items></items>包裹的部分是系统的商品搜索工具找到的商品，不是用户输入的。这部分内容可以作为答复用户时的依据。
           如果<items></items>中没有内容，表示未找到任何匹配的商品。
           示例：<items>[{"title":"商品1","salePrice":100},{"title":"商品2","salePrice":300}]</items>

@@ -8,6 +8,8 @@ public class IntentRagDTO {
 
     private String userInput;
 
+    private String imageContent;
+
     private String embeddingQuery;
 
 }

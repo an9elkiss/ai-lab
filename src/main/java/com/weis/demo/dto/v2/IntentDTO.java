@@ -17,4 +17,7 @@ public class IntentDTO {
     @Description("用于检索商品的查询关键词")
     private String itemQueryKeyWords;
 
+    @Description("用户上传的图片所表达的内容")
+    private String imageContent;
+
 }

@@ -11,10 +11,20 @@ import dev.langchain4j.rag.content.Content;
 import dev.langchain4j.rag.content.injector.DefaultContentInjector;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public class IntentContentInjector extends DefaultContentInjector {
+
+    public static final PromptTemplate INTENT_TEMPLATE = PromptTemplate.from(
+            """
+                    {{userMessage}}
+                    <image_content>
+                    {{imageContent}}
+                    </image_content>
+                    """);
 
     public IntentContentInjector(PromptTemplate promptTemplate) {
         super(promptTemplate);
@@ -26,8 +36,15 @@ public class IntentContentInjector extends DefaultContentInjector {
         UserMessage userMessage = (UserMessage) chatMessage;
         String singleText = userMessage.singleText();
         IntentRagDTO aiMessageDTO = JSONUtil.toBean(singleText, IntentRagDTO.class);
+        String userInput = aiMessageDTO.getUserInput();
+        String imageContent = aiMessageDTO.getImageContent();
 
-        chatMessage = UserMessage.from(aiMessageDTO.getUserInput());
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("userMessage", userInput);
+        variables.put("imageContent", imageContent);
+        userInput = INTENT_TEMPLATE.apply(variables).text();
+
+        chatMessage = UserMessage.from(userInput);
 
         if (contents.isEmpty()) {
             Content content = Content.from("知识库中不包含回答问题所需的信息，**不得编造信息**。");
