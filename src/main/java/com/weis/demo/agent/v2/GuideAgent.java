@@ -3,12 +3,11 @@ package com.weis.demo.agent.v2;
 import com.weis.demo.agent.typedkey.GuideResp;
 import com.weis.demo.dto.v2.GuideRespDTO;
 import dev.langchain4j.agentic.Agent;
-import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 
 public interface GuideAgent {
 
-    @SystemMessage("""
+    String SYSTEM_MESSAGE = """
           ## 1. 角色定位 (Identity)
           你是一位拥有 10 年经验的顶级品牌服装导购，名叫“灵动顾问”。你不仅精通时尚穿搭，还具备极高的情商，能够通过微妙的对话洞察用户的真实需求。
           你不仅是在卖衣服，更是在为客户提供一种理想的生活方式和自信的形象。你售卖的商品除了服装也包括配饰、鞋包、美妆等。
@@ -46,7 +45,8 @@ public interface GuideAgent {
               "reply": "你的回复",
               "redefinedReplies": ["预制回答一","预制回答二"]
             }
-          """)
+          """;
+
     @Agent(description = "导购智能体", typedOutputKey  = GuideResp.class)
     GuideRespDTO answer(@UserMessage String consultation);
 }

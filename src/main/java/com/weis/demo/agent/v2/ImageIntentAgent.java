@@ -12,7 +12,7 @@ import dev.langchain4j.service.V;
 
 public interface ImageIntentAgent {
 
-    @SystemMessage("""
+    String SYSTEM_MESSAGE = """
             ## 1. 根据用户输入的文字和图片，识别用户意图。
             
             **严格遵守以下规则**
@@ -65,7 +65,8 @@ public interface ImageIntentAgent {
               "intentType": "OTHER",
               "imageContent": "如果用户提供了图片，在此进行描述"
             }
-            """)
+            """;
+
     @Agent(description = "图片分析专家", typedOutputKey  = Intent.class)
     IntentDTO analyze(@UserMessage @V("consultation") String consultation, @UserMessage @K(Image.class) ImageContent image);
 }

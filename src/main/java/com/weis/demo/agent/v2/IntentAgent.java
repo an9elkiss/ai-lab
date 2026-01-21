@@ -9,7 +9,7 @@ import dev.langchain4j.service.V;
 
 public interface IntentAgent {
 
-    @SystemMessage("""
+    String SYSTEM_MESSAGE = """
             ## 1. 根据用户输入的文字，识别用户意图。
             
             **严格遵守以下规则**
@@ -51,7 +51,7 @@ public interface IntentAgent {
             {
               "intentType": "OTHER"
             }
-            """)
+            """;
     @Agent(description = "用户意图识别", typedOutputKey  = Intent.class)
     IntentDTO analyze(@UserMessage @V("consultation") String consultation);
 }

@@ -1,5 +1,6 @@
 package com.weis.demo.config;
 
+import com.weis.demo.agent.provider.SubMemoryIdSystemMessageProvider;
 import com.weis.demo.agent.v2.*;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.community.model.dashscope.QwenChatModel;
@@ -14,31 +15,35 @@ import org.springframework.context.annotation.Configuration;
 public class AgentV2Config {
 
     @Bean
-    public IntentAgent intentAgent(ChatModel chatModel) {
+    public IntentAgent intentAgent(ChatModel chatModel, SubMemoryIdSystemMessageProvider systemMessageProvider) {
         return AgenticServices.agentBuilder(IntentAgent.class)
                 .chatModel(chatModel)
+                .systemMessageProvider(systemMessageProvider)
                 .build();
     }
 
     @Bean
-    public ImageIntentAgent imageIntentAgent(QwenChatModel chatModel) {
+    public ImageIntentAgent imageIntentAgent(QwenChatModel chatModel, SubMemoryIdSystemMessageProvider systemMessageProvider) {
         return AgenticServices.agentBuilder(ImageIntentAgent.class)
                 .chatModel(chatModel)
+                .systemMessageProvider(systemMessageProvider)
                 .build();
     }
 
     @Bean
-    public GuideAgent guideAgent(ChatModel chatModel) {
+    public GuideAgent guideAgent(ChatModel chatModel, SubMemoryIdSystemMessageProvider systemMessageProvider) {
         return AgenticServices.agentBuilder(GuideAgent.class)
                 .chatModel(chatModel)
+                .systemMessageProvider(systemMessageProvider)
                 .build();
     }
 
     @Bean
-    public RAGGuideAgent ragGuideAgent(ChatModel chatModel, RetrievalAugmentor retrievalAugmentorV2) {
+    public RAGGuideAgent ragGuideAgent(ChatModel chatModel, RetrievalAugmentor retrievalAugmentorV2, SubMemoryIdSystemMessageProvider systemMessageProvider) {
         return AgenticServices.agentBuilder(RAGGuideAgent.class)
                 .chatModel(chatModel)
                 .retrievalAugmentor(retrievalAugmentorV2)
+                .systemMessageProvider(systemMessageProvider)
                 .build();
     }
 
