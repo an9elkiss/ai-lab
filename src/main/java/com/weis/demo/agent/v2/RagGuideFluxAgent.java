@@ -1,12 +1,11 @@
 package com.weis.demo.agent.v2;
 
-import com.weis.demo.agent.typedkey.GuideResp;
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.UserMessage;
 import reactor.core.publisher.Flux;
 
-public interface GuideFluxAgent {
+public interface RagGuideFluxAgent {
 
     String SYSTEM_MESSAGE = """
           ## 1. 角色定位 (Identity)
@@ -22,9 +21,7 @@ public interface GuideFluxAgent {
           需要同时结合用户输入的文字和<image_content></image_content>中的内容来理解用户的真实需求。
           如果<image_content></image_content>中没有内容，表示用户只输入了文字但没有上传图片。
           
-          **注意** 用户消息中被标签<items></items>包裹的部分是系统的商品搜索工具找到的商品，不是用户输入的。这部分内容可以作为答复用户时的依据。
-          如果<items></items>中没有内容，表示未找到任何匹配的商品。
-          示例：<items>[{"title":"商品1","salePrice":100},{"title":"商品2","salePrice":300}]</items>
+          **注意** 用户消息中被标签<rag_result></rag_result>包裹的部分是系统通过RAG流程召回的内容，不是用户输入的。这部分内容用于答复用户时的依据。
           
           ## 3. 预制回答功能 (Predefined Replies)
           当你的回答需要用户进一步提供信息时（如追问性别、场合、预算等），请在你的回复中提供2-3个预制回答选项。
@@ -48,5 +45,5 @@ public interface GuideFluxAgent {
           """;
 
     @Agent(description = "导购智能体")
-    Flux<String> answer(@UserMessage String consultation, @MemoryId String memoryId);
+    Flux<String> answer(@UserMessage String intentDTO, @MemoryId String memoryId);
 }

@@ -1,9 +1,6 @@
 package com.weis.demo.dto.constant;
 
-import com.weis.demo.agent.v2.GuideAgent;
-import com.weis.demo.agent.v2.ImageIntentAgent;
-import com.weis.demo.agent.v2.IntentAgent;
-import com.weis.demo.agent.v2.RAGGuideAgent;
+import com.weis.demo.agent.v2.*;
 
 public enum AgentSystemMessage {
 
@@ -11,6 +8,9 @@ public enum AgentSystemMessage {
     INTENT_AGENT_SYSTEM_MESSAGE("100002", IntentAgent.SYSTEM_MESSAGE),
     GUIDE_AGENT_SYSTEM_MESSAGE("100003", GuideAgent.SYSTEM_MESSAGE),
     RAG_GUIDE_AGENT_SYSTEM_MESSAGE("100004", RAGGuideAgent.SYSTEM_MESSAGE),
+
+    GUIDE_FLUX_AGENT_SYSTEM_MESSAGE("100101", GuideFluxAgent.SYSTEM_MESSAGE),
+    RAG_GUIDE_FLUX_AGENT_SYSTEM_MESSAGE("100102", RagGuideFluxAgent.SYSTEM_MESSAGE),
 
 
     ;

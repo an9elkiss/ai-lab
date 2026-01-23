@@ -61,6 +61,9 @@ public class GoldMedalGuideV2Controller {
     private GuideFluxAgent guideFluxAgent;
 
     @Autowired
+    private RagGuideFluxAgent ragGuideFluxAgent;
+
+    @Autowired
     private ItemService itemService;
 
     public static final PromptTemplate ITEM_SEARCH_INTENT_TEMPLATE = PromptTemplate.from(
@@ -178,18 +181,79 @@ public class GoldMedalGuideV2Controller {
             summary = "流式输出演示",
             description = "流式输出"
     )
-    @PostMapping(value = "/flux", produces = TEXT_EVENT_STREAM_VALUE)
+    @PostMapping(value = "/flux", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = TEXT_EVENT_STREAM_VALUE + ";charset=UTF-8")
     public Flux<String> flux(
+            @Parameter(description = "要分析的图片文件")
+            @RequestParam(value = "image", required = false) MultipartFile imageFile,
+
             @Parameter(description = "咨询内容", example = "你好")
-            @RequestParam String consultation){
+            @RequestParam String consultation,
 
-        Map<String, Object> variables = new HashMap<>();
-        variables.put("userMessage", consultation);
-        variables.put("imageContent", "");
-        String userInput = INTENT_TEMPLATE.apply(variables).text();
-        log.warn("UserInput: {}", userInput);
+            @Parameter(description = "智能体记忆ID", example = "9a1b2c3d4e5f67890abcdef123456789")
+            @RequestParam String memoryId
+    ) throws IOException {
 
-        return guideFluxAgent.answer(userInput);
+        createMemoryIdInfo(memoryId); //聊天上下文
+
+        ImageContent imageContent = null;
+        if (imageFile != null && !imageFile.isEmpty()) {
+            // 将上传的文件转换为 Base64 编码
+            byte[] imageBytes = imageFile.getBytes();
+            String base64Image = Base64.getEncoder().encodeToString(imageBytes);
+            String mimeType = imageFile.getContentType();
+            imageContent = ImageContent.from(base64Image, mimeType);
+        }
+
+        IntentDTO intentDTO = null;
+        if (imageContent != null) {
+            intentDTO = imageIntentAgent.analyze(consultation, imageContent);
+            // OpenAiTokenCountEstimator 不支持 ImageContent，所以无法添加记忆
+//                    getSubMemoryId(memoryId, IMAGE_INTENT_AGENT_SYSTEM_MESSAGE));
+        } else {
+            intentDTO = intentAgent.analyze(consultation, getSubMemoryId(memoryId, INTENT_AGENT_SYSTEM_MESSAGE));
+        }
+        log.warn("IntentDTO: {}", JSONUtil.toJsonStr(intentDTO));
+        String imageContentStr = intentDTO.getImageContent();
+        imageContentStr = imageContentStr != null ? imageContentStr : "";
+
+        if (GREETING.equals(intentDTO.getIntentType()) || OTHER.equals(intentDTO.getIntentType())) {
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("userMessage", consultation);
+            variables.put("imageContent", imageContentStr);
+            String userInput = INTENT_TEMPLATE.apply(variables).text();
+            log.warn("UserInput: {}", userInput);
+
+            return guideFluxAgent.answer(userInput, getSubMemoryId(memoryId, GUIDE_FLUX_AGENT_SYSTEM_MESSAGE));
+        } if (DISCOVER_BRAND.equals(intentDTO.getIntentType())) {
+            IntentRagDTO intentRagDTO = new IntentRagDTO();
+            intentRagDTO.setEmbeddingQuery(intentDTO.getEmbeddingQuery());
+            intentRagDTO.setUserInput(consultation);
+            intentRagDTO.setImageContent(imageContentStr);
+
+            return ragGuideFluxAgent.answer(JSONUtil.toJsonStr(intentRagDTO), getSubMemoryId(memoryId, RAG_GUIDE_AGENT_SYSTEM_MESSAGE));
+//        } if (ITEM_SEARCH.equals(intentDTO.getIntentType())) {
+//            String keyWords = intentDTO.getItemQueryKeyWords();
+//            keyWords = "红色"; // 测试代码
+//            List<ItemDTO> itemDTOS = itemService.search(keyWords);
+//
+//            Map<String, Object> variables = new HashMap<>();
+//            variables.put("userMessage", consultation);
+//            variables.put("imageContent", imageContentStr);
+//            variables.put("items", itemDTOS != null && !itemDTOS.isEmpty() ? JSONUtil.toJsonStr(itemDTOS) : "");
+//
+//            String userInput = ITEM_SEARCH_INTENT_TEMPLATE.apply(variables).text();
+//            log.warn("UserInput: {}", userInput);
+//
+//            GuideRespDTO answer = guideAgent.answer(userInput, getSubMemoryId(memoryId, GUIDE_AGENT_SYSTEM_MESSAGE));
+//
+//            GuideRespExtDTO answerExt = new GuideRespExtDTO();
+//            answerExt.setItems(itemDTOS);
+//            BeanUtil.copyProperties(answer, answerExt);
+//
+//            return ResponseEntity.ok(answerExt);
+        } else {
+            throw new RuntimeException("Invalid intent type: " + intentDTO.getIntentType());
+        }
     }
 
 }

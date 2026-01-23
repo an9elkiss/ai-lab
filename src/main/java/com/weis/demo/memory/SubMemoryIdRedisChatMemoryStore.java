@@ -19,6 +19,14 @@ public class SubMemoryIdRedisChatMemoryStore extends RedisChatMemoryStore {
     @Autowired
     private SubMemoryIdSystemMessageProvider subMemoryIdSystemMessageProvider;
 
+    /**
+     * 获取聊天消息列表，并替换SystemMessage为根据memoryId动态生成的系统消息
+     * 
+     * @param memoryId 内存标识，格式为"baseId-code"
+     * @return 聊天消息列表，其中第一条消息为动态生成的SystemMessage
+     * @throws IllegalArgumentException 如果memoryId格式错误
+     * @throws IllegalStateException 如果消息列表第一条不是SystemMessage
+     */
     @Override
     public List<ChatMessage> getMessages(Object memoryId) {
         String baseId = getBaseMemoryId(memoryId);

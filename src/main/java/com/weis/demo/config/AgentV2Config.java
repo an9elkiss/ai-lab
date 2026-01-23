@@ -64,9 +64,24 @@ public class AgentV2Config {
     }
 
     @Bean
-    public GuideFluxAgent guideFluxAgent(StreamingChatModel streamingChatModel) {
+    public GuideFluxAgent guideFluxAgent(StreamingChatModel streamingChatModel,
+                                         SubMemoryIdSystemMessageProvider systemMessageProvider,
+                                         ChatMemoryProvider chatMemoryProvider) {
         return AiServices.builder(GuideFluxAgent.class)
                 .streamingChatModel(streamingChatModel)
+                .systemMessageProvider(systemMessageProvider)
+                .chatMemoryProvider(chatMemoryProvider) // 使用默认记忆。因为subMemoryIdChatMemoryProvider记忆前期强制使用了JSON输出，会干扰当前智能体的输出
+                .build();
+    }
+
+    @Bean
+    public RagGuideFluxAgent ragGuideFluxAgent(StreamingChatModel streamingChatModel,
+                                         SubMemoryIdSystemMessageProvider systemMessageProvider,
+                                         ChatMemoryProvider chatMemoryProvider) {
+        return AiServices.builder(RagGuideFluxAgent.class)
+                .streamingChatModel(streamingChatModel)
+                .systemMessageProvider(systemMessageProvider)
+                .chatMemoryProvider(chatMemoryProvider) // 使用默认记忆。因为subMemoryIdChatMemoryProvider记忆前期强制使用了JSON输出，会干扰当前智能体的输出
                 .build();
     }
 
