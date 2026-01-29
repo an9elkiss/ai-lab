@@ -1,6 +1,6 @@
-# 微商城系统 (WEIS)
+# AI实验室
 
-基于Spring Boot 3.5.6的企业级电商微服务系统。
+探索AI技术
 
 ## 技术栈
 
@@ -159,8 +159,5 @@ GET /api/hello/info
 
 Apache 2.0
 
-## 联系方式
 
-- Email: support@weis.com
-- 文档: https://docs.weis.com
 
